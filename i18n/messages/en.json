@@ -91,7 +91,7 @@
   },
   "auth": {
     "login_title": "Welcome Back",
-    "login_subtitle": "Sign in to your MasterTransit account",
+    "login_subtitle": "Sign in to your RoutePro account",
     "register_title": "Create Account",
     "register_subtitle": "Join thousands of travellers",
     "email": "Email Address",

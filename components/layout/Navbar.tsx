@@ -1,120 +1,241 @@
+// components/layout/Navbar.tsx
 'use client'
 
-import { useTranslations } from 'next-intl'
-import { Link } from '@/i18n/client'
-import LanguageSwitcher from './LanguageSwitcher'
-import { useState } from 'react'
+import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { Menu, X, Moon, Sun, LogOut, LayoutDashboard, User } from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
+
+// ── Animated RoutePro logo (sand/dust effect) ────────────────────────────────────────
+function RouteProLogo() {
+  return (
+    <Link
+      href="/en"
+      style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', flexShrink: 0 }}
+      aria-label="RoutePro Home"
+    >
+      <span className="rp-sand-wrap">
+        <img src="/routepro-logo-clean.png" alt="RoutePro" className="rp-logo-base" draggable={false} />
+        <img src="/routepro-logo-clean.png" alt="" aria-hidden="true" className="rp-dust-1" draggable={false} />
+        <img src="/routepro-logo-clean.png" alt="" aria-hidden="true" className="rp-dust-2" draggable={false} />
+        <img src="/routepro-logo-clean.png" alt="" aria-hidden="true" className="rp-dust-3" draggable={false} />
+      </span>
+      <style>{`
+        .rp-sand-wrap { position: relative; display: inline-block; height: 36px; width: auto; }
+        .rp-sand-wrap img { height: 36px; width: auto; max-width: 160px; object-fit: contain; object-position: left center; display: block; position: absolute; top: 0; left: 0; user-select: none; pointer-events: none; }
+        .rp-logo-base { position: relative !important; animation: rpBase 5s ease-in-out infinite; }
+        @keyframes rpBase { 0%,30%{opacity:1;filter:none;}55%{opacity:0.4;filter:blur(1px);}72%{opacity:0;filter:blur(3px);}73%{opacity:0;}85%{opacity:1;filter:none;}100%{opacity:1;filter:none;} }
+        .rp-dust-1 { animation: rpDust1 5s ease-in-out infinite; }
+        @keyframes rpDust1 { 0%,30%{transform:translate(0,0)scale(1);opacity:0;filter:blur(0px);}42%{transform:translate(4px,-2px)scale(1.01);opacity:0.5;filter:blur(1px);}60%{transform:translate(12px,-5px)scale(1.03);opacity:0.3;filter:blur(3px);}72%{transform:translate(22px,-8px)scale(1.05);opacity:0;filter:blur(6px);}73%,100%{transform:translate(0,0)scale(1);opacity:0;filter:blur(0px);} }
+        .rp-dust-2 { animation: rpDust2 5s ease-in-out 0.15s infinite; }
+        @keyframes rpDust2 { 0%,35%{transform:translate(0,0)scale(1);opacity:0;filter:blur(0px);}48%{transform:translate(6px,-3px)scale(1.02);opacity:0.35;filter:blur(2px);}63%{transform:translate(18px,-7px)scale(1.04);opacity:0.2;filter:blur(5px);}72%{transform:translate(30px,-12px)scale(1.06);opacity:0;filter:blur(8px);}73%,100%{transform:translate(0,0)scale(1);opacity:0;filter:blur(0px);} }
+        .rp-dust-3 { animation: rpDust3 5s ease-in-out 0.3s infinite; }
+        @keyframes rpDust3 { 0%,40%{transform:translate(0,0)scale(1);opacity:0;filter:blur(0px);}54%{transform:translate(8px,-4px)scale(1.02);opacity:0.2;filter:blur(3px);}66%{transform:translate(24px,-10px)scale(1.05);opacity:0.12;filter:blur(7px);}72%{transform:translate(40px,-16px)scale(1.07);opacity:0;filter:blur(10px);}73%,100%{transform:translate(0,0)scale(1);opacity:0;filter:blur(0px);} }
+      `}</style>
+    </Link>
+  )
+}
 
 export default function Navbar() {
-  const t = useTranslations('nav')
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const pathname = usePathname()
+  const router = useRouter()
+
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const [dark, setDark] = useState(false)
+  const [sessionUser, setSessionUser] = useState<any>(null)
+  const [userRole, setUserRole] = useState<string | null>(null)
+
+  // --------------------------------------------------------------------------
+  // Session & role handling
+  // --------------------------------------------------------------------------
+  useEffect(() => {
+    // Initial session fetch
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setSessionUser(session.user)
+        fetchUserRole(session.user)
+      }
+    })
+
+    // Listen to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setSessionUser(session.user)
+        fetchUserRole(session.user)
+      } else {
+        setSessionUser(null)
+        setUserRole(null)
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const fetchUserRole = async (user: any) => {
+    // Super admin shortcut
+    if (user.email?.toLowerCase() === 'olaideheritagetemitope@gmail.com') {
+      setUserRole('super_admin')
+      return
+    }
+    try {
+      const { data } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+      setUserRole(data?.role || user.user_metadata?.role || 'passenger')
+    } catch {
+      setUserRole(user.user_metadata?.role || 'passenger')
+    }
+  }
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    window.location.href = '/en'
+  }
+
+  const getDashboardLink = () => {
+    if (userRole === 'super_admin' || userRole === 'admin') return '/en/admin/companies'
+    if (['company', 'company_owner', 'company_staff'].includes(userRole ?? '')) return '/en/company/dashboard'
+    return '/en/dashboard'
+  }
+
+  const getDashboardLabel = () => {
+    if (userRole === 'super_admin' || userRole === 'admin') return 'Admin Portal'
+    if (['company', 'company_owner', 'company_staff'].includes(userRole ?? '')) return 'Company Portal'
+    return 'My Dashboard'
+  }
+
+  const navLinks = [
+    { label: 'Home', href: '/en' },
+    { label: 'Trips', href: '/en/search' },
+    { label: 'Companies', href: '/en/companies' },
+    { label: 'About Us', href: '/en/about-us' },
+    { label: 'Help', href: '/en/help-center' },
+  ]
 
   return (
-    <nav className="glass-panel fixed top-0 w-full z-50 border-b border-gray-800 transition-all duration-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-20">
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center gap-2 group">
-              <span className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-500 via-purple-500 to-amber-500 bg-clip-text text-transparent transform group-hover:scale-105 transition-transform duration-200">
-                MasterTransit
-              </span>
+    <header className="mt-navbar">
+      <RouteProLogo />
+      {/* Desktop navigation */}
+      <nav className="hidden lg:flex items-center gap-1 flex-1">
+        {navLinks.map(link => {
+          const isActive = pathname === link.href || (link.href !== '/en' && pathname?.startsWith(link.href))
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                isActive
+                  ? 'text-green-700 font-semibold border-b-2 border-green-600 rounded-none'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+            >
+              {link.label}
             </Link>
-          </div>
+          )
+        })}
+      </nav>
 
-          <div className="hidden md:flex items-center gap-6">
-            <Link
-              href="/"
-              className="text-gray-300 hover:text-white transition-colors duration-200 text-sm font-medium"
-            >
-              {t('home')}
-            </Link>
-            <Link
-              href="/search"
-              className="text-gray-300 hover:text-white transition-colors duration-200 text-sm font-medium"
-            >
-              {t('search')}
-            </Link>
-            <Link
-              href="/login"
-              className="text-gray-300 hover:text-white transition-colors duration-200 text-sm font-medium"
-            >
-              {t('login')}
-            </Link>
-            <Link
-              href="/register"
-              className="bg-gradient-to-r from-[#4f46e5] to-[#7c3aec] hover:from-[#6366f1] hover:to-[#8b5cf6] text-white px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-200 shadow-lg shadow-indigo-500/20"
-            >
-              {t('register')}
-            </Link>
-            <LanguageSwitcher />
-          </div>
+      {/* Right side actions */}
+      <div className="ml-auto flex items-center gap-2">
+        <button
+          onClick={() => setDark(!dark)}
+          className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors hidden md:flex"
+          aria-label="Toggle dark mode"
+        >
+          {dark ? <Sun size={18} /> : <Moon size={18} />}
+        </button>
+        <select
+          value={pathname.split('/')[1] || 'en'}
+          onChange={e => {
+            const newLocale = e.target.value
+            const parts = pathname.split('/')
+            parts[1] = newLocale
+            const newPath = parts.join('/') || '/'
+            router.push(newPath)
+          }}
+          className="ml-2 p-1 rounded border border-gray-300 bg-white text-sm"
+        >
+          {['en', 'fr', 'zh', 'yo', 'ig', 'ha', 'sw'].map(code => (
+            <option key={code} value={code}>
+              {code.toUpperCase()}
+            </option>
+          ))}
+        </select>
 
-          <div className="md:hidden flex items-center gap-4">
-            <LanguageSwitcher />
+        {sessionUser ? (
+          <>
+            <Link href={getDashboardLink()} className="hidden md:inline-flex mt-btn-primary text-sm gap-1.5 items-center">
+              <LayoutDashboard size={14} /> {getDashboardLabel()}
+            </Link>
+            <Link href="/en/dashboard/profile" className="hidden md:inline-flex p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors">
+              <User size={16} />
+            </Link>
             <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-gray-400 hover:text-white"
+              onClick={handleLogout}
+              className="hidden md:inline-flex mt-btn-outline text-sm gap-1.5 items-center border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
             >
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                {mobileMenuOpen ? (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                ) : (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                )}
-              </svg>
+              <LogOut size={14} /> Log Out
             </button>
-          </div>
-        </div>
+          </>
+        ) : (
+          <>
+            <Link href="/en/login" className="hidden md:inline-flex mt-btn-outline text-sm">Login</Link>
+            <Link href="/en/register" className="hidden md:inline-flex mt-btn-primary text-sm" style={{ background: '#16A34A', borderRadius: 8, color: 'white' }}>
+              Sign Up
+            </Link>
+          </>
+        )}
+
+        <button
+          onClick={() => setMobileOpen(!mobileOpen)}
+          className="lg:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-600"
+        >
+          {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
       </div>
 
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden bg-[#0a0a0f] border-b border-gray-800 py-4 px-4 space-y-3">
-          <Link
-            href="/"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block text-gray-300 hover:text-white text-base font-medium py-2"
-          >
-            {t('home')}
-          </Link>
-          <Link
-            href="/search"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block text-gray-300 hover:text-white text-base font-medium py-2"
-          >
-            {t('search')}
-          </Link>
-          <Link
-            href="/login"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block text-gray-300 hover:text-white text-base font-medium py-2"
-          >
-            {t('login')}
-          </Link>
-          <Link
-            href="/register"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block bg-gradient-to-r from-[#4f46e5] to-[#7c3aec] text-white text-center py-2.5 rounded-xl text-base font-semibold"
-          >
-            {t('register')}
-          </Link>
+      {/* Mobile menu */}
+      {mobileOpen && (
+        <div className="absolute top-full left-0 right-0 bg-white border-b border-gray-200 shadow-lg lg:hidden" style={{ zIndex: 60 }}>
+          <nav className="flex flex-col p-4 gap-1">
+            {navLinks.map(link => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileOpen(false)}
+                className="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100"
+              >
+                {link.label}
+              </Link>
+            ))}
+            <hr className="my-2 border-gray-200" />
+            {sessionUser ? (
+              <>
+                <Link href={getDashboardLink()} onClick={() => setMobileOpen(false)} className="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100">
+                  {getDashboardLabel()}
+                </Link>
+                <Link href="/en/dashboard/profile" onClick={() => setMobileOpen(false)} className="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100">
+                  My Profile
+                </Link>
+                <button
+                  onClick={() => { setMobileOpen(false); handleLogout() }}
+                  className="px-4 py-2.5 rounded-lg text-sm font-medium text-red-600 text-left hover:bg-red-50"
+                  style={{ border: 'none', background: 'none', width: '100%', cursor: 'pointer' }}
+                >
+                  Log Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/en/login" onClick={() => setMobileOpen(false)} className="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100">
+                  Login
+                </Link>
+                <Link href="/en/register" onClick={() => setMobileOpen(false)} className="px-4 py-2.5 rounded-lg text-sm font-medium text-white text-center" style={{ background: '#16A34A', borderRadius: 8 }}>
+                  Sign Up
+                </Link>
+              </>
+            )}
+          </nav>
         </div>
       )}
-    </nav>
+    </header>
   )
 }

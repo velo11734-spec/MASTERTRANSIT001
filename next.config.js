@@ -8,7 +8,12 @@ const withNextIntl = createNextIntlPlugin(
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ['gisujguwbgasnmyapczu.supabase.co'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'gisujguwbgasnmyapczu.supabase.co',
+      },
+    ],
   }
 };
 

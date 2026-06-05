@@ -91,7 +91,7 @@
   },
   "auth": {
     "login_title": "欢迎回来",
-    "login_subtitle": "登录您的MasterTransit账户",
+    "login_subtitle": "登录您的RoutePro账户",
     "register_title": "创建账户",
     "register_subtitle": "加入数千名旅客的行列",
     "email": "电子邮箱",

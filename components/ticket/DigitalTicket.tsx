@@ -114,7 +114,7 @@ export default function DigitalTicket({ ticket }: { ticket: TicketData }) {
         <div className="border-t border-dashed border-gray-800 pt-6 flex flex-col items-center gap-4">
           <div className="bg-white p-3 rounded-2xl">
             <QRCode
-              value={`https://mastertransit.africa/qr-check-in/${ticket.id}`}
+              value={`https://routepro.africa/qr-check-in/${ticket.id}`}
               size={120}
               level="H"
             />

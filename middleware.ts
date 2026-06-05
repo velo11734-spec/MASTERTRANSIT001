@@ -65,6 +65,29 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
+  if (user) {
+    // Fetch role from profiles table (fallback to user_metadata if missing)
+    const { data: profileData, error: profileErr } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+    const userRole = profileData?.role ?? user.user_metadata?.role;
+
+    // Admin routes require admin or super_admin role (or specific admin email)
+    if (isAdminRoute && userRole !== 'admin' && userRole !== 'super_admin' && user.email?.toLowerCase() !== 'olaideheritagetemitope@gmail.com') {
+      const redirectUrl = userRole === 'company' || userRole === 'company_owner'
+        ? new URL('/en/company/dashboard', request.url)
+        : new URL('/en/dashboard', request.url);
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    // Company routes require company or company_owner or company_staff role
+    if (isCompanyRoute && userRole !== 'company' && userRole !== 'company_owner' && userRole !== 'company_staff') {
+      return NextResponse.redirect(new URL('/en/dashboard', request.url));
+    }
+  }
+
   // Apply intl middleware
   return intlMiddleware(request)
 }
