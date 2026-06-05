@@ -92,7 +92,7 @@ export default function HomePage() {
         setPopularRoutes(routes ?? [])
 
         // Platform stats
-        const [{ count: users }, { count: companies }, { count: routes: routeCount }] = await Promise.all([
+        const [{ count: users }, { count: companies }, { count: routeCount }] = await Promise.all([
           supabase.from('profiles').select('*', { count: 'exact', head: true }),
           supabase.from('companies').select('*', { count: 'exact', head: true }).eq('status', 'verified'),
           supabase.from('routes').select('*', { count: 'exact', head: true }).eq('status', 'active'),
