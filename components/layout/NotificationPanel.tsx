@@ -18,7 +18,7 @@ export default function NotificationPanel() {
 
         // Load notifications targeting the user or general
         const { data, error } = await supabase
-          .from('admin_notifications')
+          .from('notifications')
           .select('*')
           .order('created_at', { ascending: false })
           .limit(10)
@@ -55,9 +55,9 @@ export default function NotificationPanel() {
       setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
       setUnreadCount(0)
 
-      // Sync with Supabase (mark all admin_notifications read)
+      // Sync with Supabase (mark all notifications read)
       await supabase
-        .from('admin_notifications')
+        .from('notifications')
         .update({ is_read: true })
         .eq('is_read', false)
 
@@ -72,7 +72,7 @@ export default function NotificationPanel() {
       setUnreadCount(c => Math.max(0, c - 1))
 
       await supabase
-        .from('admin_notifications')
+        .from('notifications')
         .update({ is_read: true })
         .eq('id', id)
     } catch (err) {
