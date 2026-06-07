@@ -1,220 +1,290 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { MapPin, Plus, ArrowRight } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
-
-interface Route {
-  id: string
-  origin: string
-  destination: string
-  distance_km: number
-  estimated_hours: number
-}
+import {
+  Route,
+  Plus,
+  Trash2,
+  AlertCircle,
+  MapPin
+} from 'lucide-react'
 
 export default function RoutesPage() {
-  const router = useRouter()
-  const [routes, setRoutes] = useState<Route[]>([])
+  const [company, setCompany] = useState<any>(null)
+  const [routes, setRoutes] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [adding, setAdding] = useState(false)
 
-  // Form state
+  // Modal forms
+  const [showModal, setShowModal] = useState(false)
   const [origin, setOrigin] = useState('')
   const [destination, setDestination] = useState('')
-  const [distanceKm, setDistanceKm] = useState('')
-  const [estimatedHours, setEstimatedHours] = useState('')
+  const [distance, setDistance] = useState('')
+  const [duration, setDuration] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const fetchRoutes = async () => {
+  useEffect(() => {
+    async function loadRoutes() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session?.user) return
+
+        const { data: comp } = await supabase
+          .from('companies')
+          .select('*')
+          .eq('owner_id', session.user.id)
+          .maybeSingle()
+
+        if (comp) {
+          setCompany(comp)
+          const { data: rData } = await supabase
+            .from('routes')
+            .select('*')
+            .eq('company_id', comp.id)
+            .order('created_at', { ascending: false })
+          setRoutes(rData || [])
+        }
+      } catch (err) {
+        console.error('Failed to load routes:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadRoutes()
+  }, [])
+
+  const handleCreateRoute = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!company) return
+
+    setError(null)
+    setSubmitting(true)
+
+    const distNum = parseFloat(distance)
+    const durNum = parseFloat(duration)
+
+    if (!origin || !destination) {
+      setError('Origin and Destination are required.')
+      setSubmitting(false)
+      return
+    }
+
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { data: company } = await supabase
-        .from('companies')
-        .select('id')
-        .eq('owner_id', user.id)
+      const { data, error: addErr } = await supabase
+        .from('routes')
+        .insert({
+          company_id: company.id,
+          origin,
+          destination,
+          distance_km: isNaN(distNum) ? null : distNum,
+          estimated_hours: isNaN(durNum) ? null : durNum
+        })
+        .select()
         .single()
 
-      if (!company) return
+      if (addErr) throw addErr
 
-      const { data: routeData, error } = await supabase
-        .from('routes')
-        .select('*')
-        .eq('company_id', company.id)
+      // Log action
+      await supabase.from('audit_logs').insert({
+        actor_id: (await supabase.auth.getUser()).data.user?.id,
+        actor_email: (await supabase.auth.getUser()).data.user?.email,
+        action: 'company_route_add',
+        entity_type: 'routes',
+        entity_id: data.id,
+        new_value: { origin, destination }
+      })
 
-      if (error) throw error
-      setRoutes(routeData || [])
-    } catch (err) {
-      console.error('Error fetching routes:', err)
+      setRoutes(prev => [data, ...prev])
+      setShowModal(false)
+      setOrigin('')
+      setDestination('')
+      setDistance('')
+      setDuration('')
+    } catch (err: any) {
+      console.error('Create route error:', err)
+      setError(err.message || 'Failed to create route.')
     } finally {
-      setLoading(false)
+      setSubmitting(false)
     }
   }
 
-  useEffect(() => {
-    fetchRoutes()
-  }, [])
+  const handleDeleteRoute = async (id: string) => {
+    if (!confirm('Are you sure you want to retire this route line? All linked scheduling is archived.')) return
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setAdding(true)
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('User not authenticated')
+      const { error: delErr } = await supabase
+        .from('routes')
+        .delete()
+        .eq('id', id)
 
-      const { data: company } = await supabase
-        .from('companies')
-        .select('id')
-        .eq('owner_id', user.id)
-        .single()
+      if (delErr) throw delErr
 
-      if (!company) throw new Error('Company onboarding not completed.')
-
-      const { error: dbError } = await supabase.from('routes').insert({
-        company_id: company.id,
-        origin,
-        destination,
-        distance_km: parseFloat(distanceKm),
-        estimated_hours: parseFloat(estimatedHours),
+      // Log action
+      await supabase.from('audit_logs').insert({
+        actor_id: (await supabase.auth.getUser()).data.user?.id,
+        actor_email: (await supabase.auth.getUser()).data.user?.email,
+        action: 'company_route_delete',
+        entity_type: 'routes',
+        entity_id: id
       })
 
-      if (dbError) throw dbError
-
-      // Reset form
-      setOrigin('')
-      setDestination('')
-      setDistanceKm('')
-      setEstimatedHours('')
-      fetchRoutes()
-      alert('Route added successfully!')
-    } catch (err: any) {
-      console.error('Error adding route:', err)
-      alert(err.message || 'Failed to add route.')
-    } finally {
-      setAdding(false)
+      setRoutes(prev => prev.filter(r => r.id !== id))
+    } catch (err) {
+      console.error('Delete route error:', err)
     }
+  }
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div className="skeleton" style={{ height: 48, width: '40%' }} />
+        <div className="skeleton" style={{ height: 250, borderRadius: 12 }} />
+      </div>
+    )
   }
 
   return (
-    <div style={{ background: '#F8FAFC', minHeight: '100vh', padding: '24px 20px' }}>
-      <div style={{ maxWidth: 900, margin: '0 auto' }}>
-        
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-          <div>
-            <h1 style={{ fontSize: 24, fontWeight: 800, color: '#0F172A', fontFamily: 'Outfit, sans-serif' }}>Route Management</h1>
-            <p style={{ fontSize: 14, color: '#64748B' }}>Define travel routes and paths for your trips</p>
-          </div>
-          <button onClick={() => router.push('/en/company/dashboard')} className="mt-btn-outline" style={{ padding: '10px 20px' }}>
-            Dashboard
-          </button>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }} className="fade-in">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h1 style={{ fontSize: 24, fontWeight: 900, color: '#0F172A', fontFamily: 'Outfit, sans-serif' }}>Route Management</h1>
+          <p style={{ fontSize: 13, color: '#64748B' }}>Establish route vectors, distances, and travel corridors for your transit offerings</p>
         </div>
+        <button onClick={() => setShowModal(true)} className="mt-btn-primary btn-press">
+          <Plus size={16} /> Create Route
+        </button>
+      </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 24 }}>
-          
-          {/* List of Routes */}
-          <div className="mt-card" style={{ padding: 24 }}>
-            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#0F172A', marginBottom: 16 }}>Your Travel Routes</h2>
-            {loading ? (
-              <p style={{ color: '#64748B' }}>Loading routes...</p>
-            ) : routes.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px 20px', color: '#64748B' }}>
-                <MapPin size={36} style={{ color: '#94A3B8', marginBottom: 12, margin: '0 auto' }} />
-                <p style={{ fontSize: 14, fontWeight: 600 }}>No routes defined yet</p>
-                <p style={{ fontSize: 12, marginTop: 4 }}>Add your routes using the form on the right.</p>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {/* Routes table */}
+      <div className="mt-card" style={{ background: '#FFFFFF', borderRadius: 12, overflow: 'hidden' }}>
+        {routes.length === 0 ? (
+          <div style={{ padding: 40, textAlign: 'center' }}>
+            <Route size={40} color="#94A3B8" style={{ margin: '0 auto 12px' }} />
+            <p style={{ fontSize: 13, color: '#64748B' }}>No routes registered yet. Click "Create Route" to define transit lines.</p>
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 13 }}>
+              <thead>
+                <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
+                  <th style={{ padding: '14px 16px', fontWeight: 600, color: '#475569' }}>Origin</th>
+                  <th style={{ padding: '14px 16px', fontWeight: 600, color: '#475569' }}>Destination</th>
+                  <th style={{ padding: '14px 16px', fontWeight: 600, color: '#475569' }}>Distance</th>
+                  <th style={{ padding: '14px 16px', fontWeight: 600, color: '#475569' }}>Est. Duration</th>
+                  <th style={{ padding: '14px 16px', fontWeight: 600, color: '#475569' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
                 {routes.map(r => (
-                  <div key={r.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 16, border: '1px solid #E2E8F0', borderRadius: 12, background: 'white' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{ width: 40, height: 40, background: '#EDE9FE', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <MapPin size={20} color="#7C3AED" />
-                      </div>
-                      <div>
-                        <p style={{ fontSize: 15, fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 6 }}>
-                          {r.origin} <ArrowRight size={14} color="#64748B" /> {r.destination}
-                        </p>
-                        <p style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>
-                          Distance: <strong>{r.distance_km} km</strong> · Est. Time: <strong>{r.estimated_hours} hrs</strong>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                  <tr key={r.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                    <td style={{ padding: '14px 16px', fontWeight: 700, color: '#0F172A' }}>{r.origin}</td>
+                    <td style={{ padding: '14px 16px', fontWeight: 700, color: '#0F172A' }}>{r.destination}</td>
+                    <td style={{ padding: '14px 16px', color: '#64748B' }}>{r.distance_km ? `${r.distance_km} KM` : 'N/A'}</td>
+                    <td style={{ padding: '14px 16px', color: '#64748B' }}>{r.estimated_hours ? `${r.estimated_hours} Hours` : 'N/A'}</td>
+                    <td style={{ padding: '14px 16px' }}>
+                      <button
+                        onClick={() => handleDeleteRoute(r.id)}
+                        style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer', padding: 4 }}
+                        title="Delete Route"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
                 ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Create route modal */}
+      {showModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.4)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 100
+        }}>
+          <form onSubmit={handleCreateRoute} className="mt-card modal-in" style={{ background: '#FFFFFF', padding: 32, borderRadius: 16, maxWidth: 450, width: '100%', margin: '0 16px' }}>
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0F172A', marginBottom: 6, fontFamily: 'Outfit, sans-serif' }}>Create Route Line</h3>
+            <p style={{ fontSize: 12, color: '#64748B', marginBottom: 20 }}>Define origin and destination terminologies</p>
+
+            {error && (
+              <div style={{ background: '#FEE2E2', color: '#DC2626', padding: 12, borderRadius: 8, fontSize: 12, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                <AlertCircle size={16} />
+                <span>{error}</span>
               </div>
             )}
-          </div>
 
-          {/* Add Route Form */}
-          <div className="mt-card" style={{ padding: 24 }}>
-            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#0F172A', marginBottom: 16 }}>Create New Route</h2>
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ marginBottom: 12 }}>
+              <label className="mt-label">Origin City / Terminal *</label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Lagos (Jibowu)"
+                className="mt-input"
+                value={origin}
+                onChange={e => setOrigin(e.target.value)}
+              />
+            </div>
+
+            <div style={{ marginBottom: 12 }}>
+              <label className="mt-label">Destination City / Terminal *</label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Abuja (Utako)"
+                className="mt-input"
+                value={destination}
+                onChange={e => setDestination(e.target.value)}
+              />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
               <div>
-                <label className="mt-label">Origin City / Terminal</label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. Lagos (Jibowu)" 
-                  value={origin} 
-                  onChange={e => setOrigin(e.target.value)} 
-                  required 
-                  className="mt-input" 
+                <label className="mt-label">Distance (KM)</label>
+                <input
+                  type="number"
+                  placeholder="e.g. 750"
+                  className="mt-input"
+                  value={distance}
+                  onChange={e => setDistance(e.target.value)}
                 />
               </div>
-
               <div>
-                <label className="mt-label">Destination City / Terminal</label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. Abuja (Utako)" 
-                  value={destination} 
-                  onChange={e => setDestination(e.target.value)} 
-                  required 
-                  className="mt-input" 
+                <label className="mt-label">Est. Duration (Hours)</label>
+                <input
+                  type="number"
+                  step="any"
+                  placeholder="e.g. 9.5"
+                  className="mt-input"
+                  value={duration}
+                  onChange={e => setDuration(e.target.value)}
                 />
               </div>
+            </div>
 
-              <div>
-                <label className="mt-label">Distance (km)</label>
-                <input 
-                  type="number" 
-                  step="0.1"
-                  placeholder="e.g. 750" 
-                  value={distanceKm} 
-                  onChange={e => setDistanceKm(e.target.value)} 
-                  required 
-                  className="mt-input" 
-                />
-              </div>
-
-              <div>
-                <label className="mt-label">Estimated Travel Time (hours)</label>
-                <input 
-                  type="number" 
-                  step="0.1"
-                  placeholder="e.g. 10.5" 
-                  value={estimatedHours} 
-                  onChange={e => setEstimatedHours(e.target.value)} 
-                  required 
-                  className="mt-input" 
-                />
-              </div>
-
-              <button 
-                type="submit" 
-                disabled={adding} 
-                className="mt-btn-primary" 
-                style={{ width: '100%', padding: '12px', marginTop: 6 }}
-              >
-                {adding ? 'Creating...' : 'Create Route'}
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+              <button type="button" onClick={() => setShowModal(false)} className="mt-btn-outline btn-press" style={{ height: 40 }}>
+                Cancel
               </button>
-            </form>
-          </div>
-
+              <button type="submit" disabled={submitting} className="mt-btn-primary btn-press" style={{ height: 40 }}>
+                {submitting ? 'Creating...' : 'Create'}
+              </button>
+            </div>
+          </form>
         </div>
-
-      </div>
+      )}
     </div>
   )
 }

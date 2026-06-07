@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase/client';
 import {
   Settings, Save, RefreshCw, Edit2, X, Check,
   DollarSign, Clock, Ticket, Globe, Phone, Mail,
-  Zap, Tag,
+  Zap, Tag, Megaphone, ShoppingBag, Car, CreditCard,
 } from 'lucide-react';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -23,21 +23,29 @@ interface PlatformSetting {
 type Toast = { msg: string; ok: boolean };
 
 const CATEGORY_ICON: Record<string, React.ElementType> = {
-  finance:   DollarSign,
-  booking:   Ticket,
-  branding:  Globe,
-  contact:   Mail,
-  system:    Settings,
-  emergency: Zap,
+  finance:      DollarSign,
+  booking:      Ticket,
+  branding:     Globe,
+  contact:      Mail,
+  system:       Settings,
+  emergency:    Zap,
+  rental:       Car,
+  marketplace:  ShoppingBag,
+  subscription: CreditCard,
+  advertising:  Megaphone,
 };
 
 const CATEGORY_COLOR: Record<string, string> = {
-  finance:   '#16A34A',
-  booking:   '#2563EB',
-  branding:  '#8B5CF6',
-  contact:   '#EC4899',
-  system:    '#64748B',
-  emergency: '#DC2626',
+  finance:      '#16A34A',
+  booking:      '#2563EB',
+  branding:     '#8B5CF6',
+  contact:      '#EC4899',
+  system:       '#64748B',
+  emergency:    '#DC2626',
+  rental:       '#0891B2',
+  marketplace:  '#8B5CF6',
+  subscription: '#D97706',
+  advertising:  '#EC4899',
 };
 
 const fmtDate = (d: string | null) =>

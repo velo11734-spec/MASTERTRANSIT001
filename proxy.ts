@@ -6,12 +6,12 @@ import createMiddleware from 'next-intl/middleware'
 const intlMiddleware = createMiddleware(routing)
 
 const protectedRoutes = {
-  passenger: ['/passenger'],
+  passenger: ['/passenger', '/dashboard'],
   company: ['/company'],
   admin: ['/admin'],
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // Handle i18n routing first
   const { pathname } = request.nextUrl
   const localePattern = /^\/(en|fr|zh|yo|ig|ha|sw)(\/|$)/
@@ -54,7 +54,10 @@ export async function middleware(request: NextRequest) {
     const isAdminRoute = protectedRoutes.admin.some((r) => pathnameWithoutLocale.startsWith(r))
 
     if ((isPassengerRoute || isCompanyRoute || isAdminRoute) && !user) {
-      const loginUrl = new URL(`/login`, request.url)
+      // Preserve locale prefix in redirect
+      const localeMatch = pathname.match(/^\/(en|fr|zh|yo|ig|ha|sw)/)
+      const locale = localeMatch ? localeMatch[1] : 'en'
+      const loginUrl = new URL(`/${locale}/login`, request.url)
       loginUrl.searchParams.set('redirectTo', pathname)
       return NextResponse.redirect(loginUrl)
     }
@@ -76,7 +79,9 @@ export async function middleware(request: NextRequest) {
       }
 
       if (isCompanyRoute && userRole !== 'company' && userRole !== 'company_owner' && userRole !== 'company_staff') {
-        return NextResponse.redirect(new URL('/en/dashboard', request.url))
+        const localeMatch = pathname.match(/^\/(en|fr|zh|yo|ig|ha|sw)/)
+        const locale = localeMatch ? localeMatch[1] : 'en'
+        return NextResponse.redirect(new URL(`/${locale}/dashboard`, request.url))
       }
     }
   } catch (err) {

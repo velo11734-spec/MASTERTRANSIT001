@@ -1,17 +1,60 @@
 'use client'
 
-import { useState } from 'react'
-import { Wallet, Plus, ArrowUpRight, ArrowDownLeft, Clock, Bus, CheckCircle2 } from 'lucide-react'
-
-const transactions = [
-  { id: 'TXN-001', type: 'credit', amount: 50000, date: 'May 25, 2024', desc: 'Wallet Top Up', status: 'success' },
-  { id: 'TXN-002', type: 'debit', amount: 8250, date: 'May 25, 2024', desc: 'Ticket BK001 (Lagos - Abuja)', status: 'success' },
-  { id: 'TXN-003', type: 'credit', amount: 4200, date: 'Apr 12, 2024', desc: 'Refund for cancelled trip BK003', status: 'success' },
-  { id: 'TXN-004', type: 'debit', amount: 4200, date: 'Apr 10, 2024', desc: 'Ticket BK003 (Lagos - Ibadan)', status: 'success' },
-]
+import { useState, useEffect } from 'react'
+import { Wallet, Plus, ArrowUpRight, ArrowDownLeft, Clock, CheckCircle2 } from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
 
 export default function WalletPage() {
-  const [balance] = useState(45950)
+  const [balance, setBalance] = useState(0)
+  const [transactions, setTransactions] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadWallet() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+          setLoading(false)
+          return
+        }
+
+        // Fetch successful transactions to aggregate balance, and also list recent transactions
+        const { data: payData, error } = await supabase
+          .from('payments')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+
+        if (error) throw error
+
+        if (payData) {
+          const totalBalance = payData
+            .filter((p: any) => p.status === 'success' || p.status === 'successful')
+            .reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
+          
+          setBalance(totalBalance)
+
+          const formatted = payData.map((p: any) => {
+            const dateObj = new Date(p.created_at)
+            return {
+              id: p.reference || p.id.slice(0, 8),
+              type: 'debit', // typically bookings are debits
+              amount: p.amount || 0,
+              date: dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }),
+              desc: `Ticket payment (${p.gateway || 'Card'})`,
+              status: p.status?.toLowerCase() || 'success'
+            }
+          })
+          setTransactions(formatted)
+        }
+      } catch (err) {
+        console.error('Error fetching wallet data:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadWallet()
+  }, [])
 
   return (
     <div style={{ background: '#F8FAFC', minHeight: '100vh', padding: '24px 20px' }}>
@@ -56,7 +99,11 @@ export default function WalletPage() {
           </div>
           
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {transactions.map((txn, i) => (
+            {loading ? (
+              <p style={{ padding: 24, fontSize: 13, color: '#64748B', textAlign: 'center' }}>Loading transaction history...</p>
+            ) : transactions.length === 0 ? (
+              <p style={{ padding: 40, fontSize: 13, color: '#94A3B8', textAlign: 'center' }}>No transactions recorded yet.</p>
+            ) : transactions.map((txn, i) => (
               <div key={txn.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: i < transactions.length - 1 ? '1px solid #F1F5F9' : 'none' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{ 

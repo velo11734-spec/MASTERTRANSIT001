@@ -37,6 +37,9 @@ function RouteProLogo() {
   )
 }
 
+import NotificationPanel from './NotificationPanel'
+import LanguageSwitcher from './LanguageSwitcher'
+
 export default function Navbar() {
   const pathname = usePathname()
   const router = useRouter()
@@ -105,6 +108,7 @@ export default function Navbar() {
   const navLinks = [
     { label: 'Home', href: '/en' },
     { label: 'Trips', href: '/en/search' },
+    { label: 'Marketplace', href: '/en/marketplace' },
     { label: 'Companies', href: '/en/companies' },
     { label: 'About Us', href: '/en/about-us' },
     { label: 'Help', href: '/en/help-center' },
@@ -131,6 +135,12 @@ export default function Navbar() {
             </Link>
           )
         })}
+        <Link
+          href="/en/companies/join"
+          className="ml-2 px-3 py-1.5 rounded-full text-xs font-semibold border border-green-200 text-green-700 bg-green-50 hover:bg-green-100 hover:border-green-300 transition-all card-hover btn-press"
+        >
+          Become a Partner
+        </Link>
       </nav>
 
       {/* Right side actions */}
@@ -142,26 +152,11 @@ export default function Navbar() {
         >
           {dark ? <Sun size={18} /> : <Moon size={18} />}
         </button>
-        <select
-          value={pathname.split('/')[1] || 'en'}
-          onChange={e => {
-            const newLocale = e.target.value
-            const parts = pathname.split('/')
-            parts[1] = newLocale
-            const newPath = parts.join('/') || '/'
-            router.push(newPath)
-          }}
-          className="ml-2 p-1 rounded border border-gray-300 bg-white text-sm"
-        >
-          {['en', 'fr', 'zh', 'yo', 'ig', 'ha', 'sw'].map(code => (
-            <option key={code} value={code}>
-              {code.toUpperCase()}
-            </option>
-          ))}
-        </select>
+        <LanguageSwitcher />
 
         {sessionUser ? (
           <>
+            <NotificationPanel />
             <Link href={getDashboardLink()} className="hidden md:inline-flex mt-btn-primary text-sm gap-1.5 items-center">
               <LayoutDashboard size={14} /> {getDashboardLabel()}
             </Link>
@@ -206,6 +201,13 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+            <Link
+              href="/en/companies/join"
+              onClick={() => setMobileOpen(false)}
+              className="px-4 py-2.5 rounded-lg text-sm font-semibold text-green-700 bg-green-50 hover:bg-green-100"
+            >
+              Become a Partner
+            </Link>
             <hr className="my-2 border-gray-200" />
             {sessionUser ? (
               <>

@@ -11,11 +11,13 @@ import {
   Wallet,
   HelpCircle,
   ChevronRight,
+  Store,
 } from 'lucide-react'
 
 const navItems = [
   { icon: Home,        label: 'Home',         href: '/en' },
   { icon: Search,      label: 'Search Trips', href: '/en/search' },
+  { icon: Store,       label: 'Marketplace',  href: '/en/marketplace' },
   { icon: CalendarDays,label: 'My Bookings',  href: '/en/dashboard/bookings' },
   { icon: Ticket,      label: 'E-Tickets',    href: '/en/e-tickets' },
   { icon: Star,        label: 'Reviews',      href: '/en/reviews' },

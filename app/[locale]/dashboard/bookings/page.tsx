@@ -1,16 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { ArrowRight, Bus, CalendarDays, Clock, Search, Filter, Download } from 'lucide-react'
-
-const allBookings = [
-  { id: 'BK001', from: 'Lagos', to: 'Abuja', date: '2024-05-28', time: '08:00 AM', company: 'ABC Transport', seat: 'B3', status: 'confirmed', amount: 7500 },
-  { id: 'BK002', from: 'Abuja', to: 'Kano', date: '2024-06-02', time: '09:00 AM', company: 'GUO Transport', seat: 'A1', status: 'pending', amount: 12000 },
-  { id: 'BK003', from: 'Lagos', to: 'Ibadan', date: '2024-04-15', time: '07:00 AM', company: 'Chisco Transport', seat: 'C4', status: 'completed', amount: 4200 },
-  { id: 'BK004', from: 'Port Harcourt', to: 'Owerri', date: '2024-03-10', time: '06:30 AM', company: 'God is Good Motors', seat: 'D2', status: 'completed', amount: 3800 },
-  { id: 'BK005', from: 'Lagos', to: 'Abuja', date: '2024-02-20', time: '10:00 AM', company: 'ABC Transport', seat: 'A5', status: 'cancelled', amount: 7500 },
-]
+import { ArrowRight, Bus, CalendarDays, Clock, Search } from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
 
 const tabs = ['All', 'Upcoming', 'Completed', 'Cancelled']
 
@@ -24,8 +17,68 @@ const statusStyle: Record<string, { bg: string; color: string }> = {
 export default function BookingsPage() {
   const [activeTab, setActiveTab] = useState('All')
   const [search, setSearch] = useState('')
+  const [bookings, setBookings] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const filtered = allBookings.filter(b => {
+  useEffect(() => {
+    async function loadBookings() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+          setLoading(false)
+          return
+        }
+
+        const { data, error } = await supabase
+          .from('bookings')
+          .select(`
+            id,
+            reference,
+            seat_numbers,
+            total_price,
+            status,
+            created_at,
+            trip:trip_id (
+              departure_at,
+              route:route_id (origin, destination),
+              company:company_id (name)
+            )
+          `)
+          .eq('user_id', user.id)
+
+        if (error) throw error
+
+        if (data) {
+          const formatted = data.map((b: any) => {
+            const trip = Array.isArray(b.trip) ? b.trip[0] : b.trip
+            const route = trip?.route ? (Array.isArray(trip.route) ? trip.route[0] : trip.route) : null
+            const company = trip?.company ? (Array.isArray(trip.company) ? trip.company[0] : trip.company) : null
+            const depDate = trip?.departure_at ? new Date(trip.departure_at) : new Date()
+
+            return {
+              id: b.reference || b.id.slice(0, 8),
+              from: route?.origin || 'Unknown',
+              to: route?.destination || 'Unknown',
+              date: depDate.toLocaleDateString(),
+              time: depDate.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
+              company: company?.name || 'Transport Operator',
+              seat: Array.isArray(b.seat_numbers) ? b.seat_numbers.join(', ') : (b.seat_numbers || 'N/A'),
+              status: b.status?.toLowerCase() || 'pending',
+              amount: b.total_price || 0
+            }
+          })
+          setBookings(formatted)
+        }
+      } catch (err) {
+        console.error('Error fetching bookings:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadBookings()
+  }, [])
+
+  const filtered = bookings.filter(b => {
     const matchTab = activeTab === 'All' ||
       (activeTab === 'Upcoming' && (b.status === 'confirmed' || b.status === 'pending')) ||
       (activeTab === 'Completed' && b.status === 'completed') ||
@@ -78,14 +131,16 @@ export default function BookingsPage() {
 
         {/* Booking Cards */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {filtered.length === 0 ? (
+          {loading ? (
+            <div style={{ padding: 40, textAlign: 'center', color: '#64748B' }}>Loading your bookings...</div>
+          ) : filtered.length === 0 ? (
             <div className="mt-card" style={{ padding: 40, textAlign: 'center' }}>
               <Bus size={40} color="#E2E8F0" style={{ margin: '0 auto 12px' }} />
               <p style={{ fontSize: 14, color: '#94A3B8' }}>No bookings found</p>
               <Link href="/en/search" className="mt-btn-primary" style={{ display: 'inline-flex', marginTop: 14 }}>Book a Trip</Link>
             </div>
           ) : filtered.map(b => {
-            const s = statusStyle[b.status]
+            const s = statusStyle[b.status] || { bg: '#F1F5F9', color: '#64748B' }
             return (
               <Link key={b.id} href={`/en/dashboard/bookings/${b.id}`} style={{ textDecoration: 'none' }}>
                 <div className="mt-card" style={{ padding: 16, cursor: 'pointer' }}>

@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase/client'
 import {
   MapPin, Navigation, CalendarDays, Users,
   Search, ArrowRight, Clock, ChevronRight,
-  ShieldCheck, Lock, Headphones,
+  ShieldCheck, Lock, Headphones, X,
 } from 'lucide-react'
 
 // ─── How It Works ─────────────────────────────────────────────────────────────
@@ -44,6 +45,16 @@ export default function HomePage() {
   const [date, setDate] = useState('')
   const [passengers, setPassengers] = useState('1')
 
+  // Autocomplete
+  const [fromSuggestions, setFromSuggestions] = useState<string[]>([])
+  const [toSuggestions, setToSuggestions] = useState<string[]>([])
+  const [allOrigins, setAllOrigins] = useState<string[]>([])
+  const [allDestinations, setAllDestinations] = useState<string[]>([])
+  const [showFromSugg, setShowFromSugg] = useState(false)
+  const [showToSugg, setShowToSugg] = useState(false)
+  const fromRef = useRef<HTMLDivElement>(null)
+  const toRef = useRef<HTMLDivElement>(null)
+
   const [text, setText] = useState("")
   const [isDeleting, setIsDeleting] = useState(false)
   const [loopNum, setLoopNum] = useState(0)
@@ -78,7 +89,7 @@ export default function HomePage() {
     return () => clearTimeout(timer)
   }, [text, isDeleting, loopNum, typingSpeed])
 
-  // Load popular routes and stats from DB
+  // Load popular routes, stats, and route origins/destinations from DB
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -91,6 +102,19 @@ export default function HomePage() {
           .limit(4)
         setPopularRoutes(routes ?? [])
 
+        // All route origins & destinations for autocomplete
+        const { data: allRoutes } = await supabase
+          .from('routes')
+          .select('origin, destination')
+          .eq('status', 'active')
+        
+        if (allRoutes) {
+          const origins = Array.from(new Set(allRoutes.map(r => r.origin).filter(Boolean))).sort()
+          const dests = Array.from(new Set(allRoutes.map(r => r.destination).filter(Boolean))).sort()
+          setAllOrigins(origins)
+          setAllDestinations(dests)
+        }
+
         // Platform stats
         const [{ count: users }, { count: companies }, { count: routeCount }] = await Promise.all([
           supabase.from('profiles').select('*', { count: 'exact', head: true }),
@@ -102,6 +126,36 @@ export default function HomePage() {
     }
     loadData()
   }, [])
+
+  // Dismiss suggestions on outside click
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (fromRef.current && !fromRef.current.contains(e.target as Node)) setShowFromSugg(false)
+      if (toRef.current && !toRef.current.contains(e.target as Node)) setShowToSugg(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  const handleFromChange = (val: string) => {
+    setFrom(val)
+    if (val.trim().length >= 1) {
+      setFromSuggestions(allOrigins.filter(o => o.toLowerCase().includes(val.toLowerCase())).slice(0, 6))
+      setShowFromSugg(true)
+    } else {
+      setShowFromSugg(false)
+    }
+  }
+
+  const handleToChange = (val: string) => {
+    setTo(val)
+    if (val.trim().length >= 1) {
+      setToSuggestions(allDestinations.filter(d => d.toLowerCase().includes(val.toLowerCase())).slice(0, 6))
+      setShowToSugg(true)
+    } else {
+      setShowToSugg(false)
+    }
+  }
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -162,41 +216,65 @@ export default function HomePage() {
             <form onSubmit={handleSearch}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr auto', gap: 12, alignItems: 'end' }}>
                 {/* From */}
-                <div>
+                <div ref={fromRef} style={{ position: 'relative' }}>
                   <label className="mt-label">From</label>
                   <div style={{ position: 'relative' }}>
-                    <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#16A34A' }}>
+                    <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#16A34A', zIndex: 1 }}>
                       <MapPin size={15} />
                     </span>
                     <input
                       type="text"
                       value={from}
-                      onChange={e => setFrom(e.target.value)}
+                      onChange={e => handleFromChange(e.target.value)}
+                      onFocus={() => from.length >= 1 && setShowFromSugg(true)}
                       placeholder="Leaving from"
                       required
                       className="mt-input"
                       style={{ paddingLeft: 30 }}
+                      autoComplete="off"
                     />
+                    {from && <button type="button" onClick={() => { setFrom(''); setShowFromSugg(false); }} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8' }}><X size={14} /></button>}
                   </div>
+                  {showFromSugg && fromSuggestions.length > 0 && (
+                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #E2E8F0', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 100, marginTop: 4, overflow: 'hidden' }}>
+                      {fromSuggestions.map(s => (
+                        <div key={s} onClick={() => { setFrom(s); setShowFromSugg(false); }} style={{ padding: '9px 14px', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: '#0F172A' }} onMouseEnter={e => (e.currentTarget.style.background = '#F0FDF4')} onMouseLeave={e => (e.currentTarget.style.background = '')}>
+                          <MapPin size={12} color="#16A34A" /> {s}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* To */}
-                <div>
+                <div ref={toRef} style={{ position: 'relative' }}>
                   <label className="mt-label">To</label>
                   <div style={{ position: 'relative' }}>
-                    <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#DC2626' }}>
+                    <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#DC2626', zIndex: 1 }}>
                       <MapPin size={15} />
                     </span>
                     <input
                       type="text"
                       value={to}
-                      onChange={e => setTo(e.target.value)}
+                      onChange={e => handleToChange(e.target.value)}
+                      onFocus={() => to.length >= 1 && setShowToSugg(true)}
                       placeholder="Going to"
                       required
                       className="mt-input"
                       style={{ paddingLeft: 30 }}
+                      autoComplete="off"
                     />
+                    {to && <button type="button" onClick={() => { setTo(''); setShowToSugg(false); }} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8' }}><X size={14} /></button>}
                   </div>
+                  {showToSugg && toSuggestions.length > 0 && (
+                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #E2E8F0', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 100, marginTop: 4, overflow: 'hidden' }}>
+                      {toSuggestions.map(s => (
+                        <div key={s} onClick={() => { setTo(s); setShowToSugg(false); }} style={{ padding: '9px 14px', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: '#0F172A' }} onMouseEnter={e => (e.currentTarget.style.background = '#FEF2F2')} onMouseLeave={e => (e.currentTarget.style.background = '')}>
+                          <MapPin size={12} color="#DC2626" /> {s}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Date */}
@@ -337,6 +415,47 @@ export default function HomePage() {
                 )}
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── BUSINESS PARTNER CTA ─────────────────────────────────────────── */}
+      <section style={{ padding: '0 24px 32px' }} className="fade-in">
+        <div style={{
+          maxWidth: 800,
+          margin: '0 auto',
+          background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+          borderRadius: 16,
+          padding: '32px 40px',
+          color: '#FFFFFF',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          boxShadow: '0 10px 30px -10px rgba(15, 23, 42, 0.3)'
+        }}>
+          <div>
+            <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#16A34A', display: 'block', marginBottom: 4 }}>Partner With Us</span>
+            <h3 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8, fontFamily: 'Outfit, sans-serif' }}>Own a Mobility Business?</h3>
+            <p style={{ fontSize: 13, color: '#94A3B8', maxWidth: 450, lineHeight: 1.5 }}>
+              Transport operators, vehicle dealers, rental providers, and fleet managers can register today to join RoutePro's enterprise-grade Mobility Marketplace.
+            </p>
+          </div>
+          <div>
+            <Link
+              href="/en/companies/join"
+              className="mt-btn-primary btn-press card-hover"
+              style={{
+                background: '#16A34A',
+                color: '#FFFFFF',
+                borderRadius: 999,
+                padding: '12px 24px',
+                fontSize: 14,
+                fontWeight: 600,
+                boxShadow: '0 4px 14px rgba(22, 163, 74, 0.4)'
+              }}
+            >
+              List Your Business
+            </Link>
           </div>
         </div>
       </section>

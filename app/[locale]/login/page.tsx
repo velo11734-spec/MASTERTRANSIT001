@@ -153,15 +153,6 @@ export default function LoginPage() {
               Register
             </Link>
           </p>
-
-          <div style={{ marginTop: 12, borderTop: '1px solid #F1F5F9', paddingTop: 12 }}>
-            <p style={{ textAlign: 'center', fontSize: 12, color: '#94A3B8' }}>
-              Registering a transport company?{' '}
-              <Link href="/en/company/onboarding/step-1" style={{ color: '#16A34A', fontWeight: 600, textDecoration: 'none' }}>
-                Register as Company
-              </Link>
-            </p>
-          </div>
         </div>
       </div>
     </div>

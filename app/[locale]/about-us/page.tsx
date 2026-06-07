@@ -521,54 +521,104 @@ const platformStats = [
 
 const roadmapItems = [
   {
-    emoji: '🚌',
-    title: 'Bus Transportation',
-    badge: '🚀 LAUNCHED',
+    emoji: '🚀',
+    title: 'Year 1: Foundation & Entry',
+    badge: 'V1.0 RELEASE',
     badgeColor: '#16A34A',
     badgeBg: '#DCFCE7',
-    desc: 'Book intercity bus trips across Nigeria with verified operators.',
+    desc: 'Complete mobility ecosystem launch with bookings, fleet manager, wallets, employee roles & careers platform.',
     cardBg: '#F0FDF4',
     border: '#BBF7D0',
   },
   {
-    emoji: '🚢',
-    title: 'Boat Transportation',
-    badge: 'Q2 2025',
+    emoji: '📈',
+    title: 'Year 2: Scale & Optimize',
+    badge: 'GROWTH',
     badgeColor: '#1D4ED8',
     badgeBg: '#DBEAFE',
-    desc: 'Ferry and boat services for coastal and riverine travel.',
+    desc: 'Advanced analytics, pricing algorithms, smart recruitment recommendations, and RoutePro mobile apps.',
     cardBg: '#EFF6FF',
     border: '#BFDBFE',
   },
   {
-    emoji: '🚂',
-    title: 'Train Services',
-    badge: 'Q4 2025',
+    emoji: '🇳🇬',
+    title: 'Year 3: National Scale',
+    badge: 'EXPANSION',
     badgeColor: '#D97706',
     badgeBg: '#FEF3C7',
-    desc: 'Rail travel booking integration with NRC and private operators.',
+    desc: 'Expanding multi-branch operations nationwide, regional management hubs, and corporate bulk booking networks.',
     cardBg: '#FFFBEB',
     border: '#FDE68A',
   },
   {
-    emoji: '✈️',
-    title: 'Flight Integration',
-    badge: '2026',
+    emoji: '🏢',
+    title: 'Year 4: Enterprise System',
+    badge: 'ENTERPRISE',
     badgeColor: '#7C3AED',
     badgeBg: '#EDE9FE',
-    desc: 'Domestic and regional flight booking within the RoutePro platform.',
+    desc: 'Advanced corporate transit dashboards, agency integrations, and custom government transportation portal setups.',
     cardBg: '#F5F3FF',
     border: '#DDD6FE',
   },
   {
-    emoji: '📦',
-    title: 'Logistics Services',
-    badge: '2026',
+    emoji: '💳',
+    title: 'Year 5: Financial Services',
+    badge: 'FINTECH',
+    badgeColor: '#2563EB',
+    badgeBg: '#DBEAFE',
+    desc: 'Vehicle leasing credit profiles, operator financing integration, traveler insurance, and split payouts.',
+    cardBg: '#EFF6FF',
+    border: '#BFDBFE',
+  },
+  {
+    emoji: '🧠',
+    title: 'Year 6: Data Intelligence',
+    badge: 'INTELLIGENCE',
+    badgeColor: '#059669',
+    badgeBg: '#D1FAE5',
+    desc: 'Route demand forecasting tools, dynamic pricing recommendation engine, and operational optimization AI.',
+    cardBg: '#F0FDF4',
+    border: '#A7F3D0',
+  },
+  {
+    emoji: '🌍',
+    title: 'Year 7: Multi-Country Scale',
+    badge: 'REGIONAL',
+    badgeColor: '#7C3AED',
+    badgeBg: '#F3E8FF',
+    desc: 'Launching cross-border payment rails, localized multi-currency portals, and regional operational compliance networks.',
+    cardBg: '#FAF5FF',
+    border: '#E9D5FF',
+  },
+  {
+    emoji: '🤝',
+    title: 'Year 8: Pan-African Network',
+    badge: 'ECOSYSTEM',
+    badgeColor: '#0891B2',
+    badgeBg: '#CFFAFE',
+    desc: 'Unifying cross-country ticket booking, fleet exchanges, and African mobility careers marketplace.',
+    cardBg: '#ECFEFF',
+    border: '#A5F3FC',
+  },
+  {
+    emoji: '🔌',
+    title: 'Year 9: Infrastructure APIs',
+    badge: 'PLATFORM',
     badgeColor: '#475569',
     badgeBg: '#F1F5F9',
-    desc: 'Package delivery and freight services across all transport modes.',
+    desc: 'RoutePro open developer marketplace, third-party logistics APIs, and mobility app modules.',
     cardBg: '#F8FAFC',
     border: '#E2E8F0',
+  },
+  {
+    emoji: '🏆',
+    title: 'Year 10: OS Maturity',
+    badge: 'VISION ACHIEVED',
+    badgeColor: '#16A34A',
+    badgeBg: '#DCFCE7',
+    desc: 'Full maturity as Africa\'s leading mobility business operating system and transit platform.',
+    cardBg: '#F0FDF4',
+    border: '#BBF7D0',
   },
 ];
 
@@ -807,10 +857,10 @@ export default function AboutUsPage() {
       <section style={styles.roadmapSection}>
         <div style={styles.section}>
           <div style={{ textAlign: 'center' }}>
-            <span style={styles.sectionTag}>What&apos;s Coming</span>
-            <h2 style={styles.sectionTitle}>Our Roadmap</h2>
+            <span style={styles.sectionTag}>10-Year Horizon</span>
+            <h2 style={styles.sectionTitle}>RoutePro Long-Term Development Roadmap</h2>
             <p style={{ ...styles.sectionSub, margin: '12px auto 0' }}>
-              RoutePro is expanding rapidly. Here is what we are building next.
+              From launch foundation to Pan-African maturity, here is our path to scaling.
             </p>
           </div>
           <div style={styles.roadmapGrid}>
@@ -948,11 +998,11 @@ export default function AboutUsPage() {
         <div style={{ position: 'relative', zIndex: 2 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.15)', borderRadius: '999px', padding: '6px 16px', marginBottom: '20px' }}>
             <Star size={14} color="#FDE68A" fill="#FDE68A" />
-            <span style={{ color: '#fff', fontSize: '13px', fontWeight: 700 }}>Trusted by 820,000+ passengers</span>
+            <span style={{ color: '#fff', fontSize: '13px', fontWeight: 700 }}>Verified Travel Platform</span>
           </div>
           <h2 style={styles.ctaH2}>Ready to Travel Smarter?</h2>
           <p style={styles.ctaSub}>
-            Join over 820,000 passengers who trust RoutePro for safe, reliable, and affordable journeys
+            Book trips with verified transport operators for safe, reliable, and affordable journeys
             across Africa.
           </p>
           <div style={styles.ctaBtns}>

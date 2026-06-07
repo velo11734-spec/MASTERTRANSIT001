@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Users, Building2, ShieldCheck, Truck, MapPin, Route,
   Bus, Ticket, CreditCard, Wallet, Scale, Star, HelpCircle, FileText,
   Bell, AlertTriangle, Lock, BarChart3, Settings, ClipboardList, Activity,
-  Zap, X, ChevronRight
+  Zap, X, ChevronRight, TrendingUp, Megaphone
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
@@ -37,6 +37,7 @@ const NAV_SECTIONS: NavSection[] = [
     title: 'Overview',
     items: [
       { label: 'Overview', icon: LayoutDashboard, href: '/en/admin' },
+      { label: 'Finance Dashboard', icon: TrendingUp, href: '/en/admin/finance' },
     ],
   },
   {
@@ -62,6 +63,7 @@ const NAV_SECTIONS: NavSection[] = [
       { label: 'Bookings', icon: Ticket, href: '/en/admin/bookings' },
       { label: 'Payments', icon: CreditCard, href: '/en/admin/payments' },
       { label: 'Payouts', icon: Wallet, href: '/en/admin/payouts' },
+      { label: 'Subscriptions', icon: CreditCard, href: '/en/admin/subscriptions' },
       { label: 'Disputes', icon: Scale, href: '/en/admin/disputes' },
     ],
   },
@@ -71,6 +73,7 @@ const NAV_SECTIONS: NavSection[] = [
       { label: 'Reviews', icon: Star, href: '/en/admin/reviews' },
       { label: 'Help Center', icon: HelpCircle, href: '/en/admin/help-content' },
       { label: 'Content', icon: FileText, href: '/en/admin/content' },
+      { label: 'Advertising', icon: Megaphone, href: '/en/admin/advertising' },
       { label: 'Notifications', icon: Bell, href: '/en/admin/notifications' },
     ],
   },

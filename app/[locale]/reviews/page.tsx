@@ -1,6 +1,8 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
+import { supabase } from '@/lib/supabase/client'
+
 import {
   Star,
   Search,
@@ -19,7 +21,7 @@ import {
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Review {
-  id: number
+  id: string
   name: string
   initials: string
   avatarColor: string
@@ -40,98 +42,9 @@ interface Company {
   color: string
 }
 
-// ─── Data ─────────────────────────────────────────────────────────────────────
-const ALL_REVIEWS: Review[] = [
-  {
-    id: 1,
-    name: 'Adaeze Okonkwo',
-    initials: 'AO',
-    avatarColor: '#7C3AED',
-    route: 'Lagos → Abuja',
-    company: 'ABC Transport',
-    date: 'Jun 2, 2026',
-    rating: 5,
-    text: 'Absolutely smooth journey! The driver was professional and the bus was spotless. Will book again!',
-    subRatings: { comfort: 5, driver: 5, timeliness: 5, cleanliness: 5 },
-    verified: true,
-  },
-  {
-    id: 2,
-    name: 'Emeka Nwachukwu',
-    initials: 'EN',
-    avatarColor: '#0891B2',
-    route: 'Abuja → Kano',
-    company: 'GUO Transport',
-    date: 'May 29, 2026',
-    rating: 4,
-    text: 'Good experience overall. Bus departed on time and seats were comfortable. AC could be colder.',
-    subRatings: { comfort: 4, driver: 5, timeliness: 5, cleanliness: 4 },
-    verified: true,
-  },
-  {
-    id: 3,
-    name: 'Fatima Aliyu',
-    initials: 'FA',
-    avatarColor: '#DC2626',
-    route: 'Lagos → Ibadan',
-    company: 'Chisco Transport',
-    date: 'May 25, 2026',
-    rating: 5,
-    text: 'Best road trip I have had in Nigeria. The seat was spacious and the journey was peaceful.',
-    subRatings: { comfort: 5, driver: 5, timeliness: 4, cleanliness: 5 },
-    verified: true,
-  },
-  {
-    id: 4,
-    name: 'Tunde Adeyemi',
-    initials: 'TA',
-    avatarColor: '#D97706',
-    route: 'PH → Owerri',
-    company: 'Peace Mass Transit',
-    date: 'May 20, 2026',
-    rating: 3,
-    text: 'Average experience. The bus was 30 mins late but driver made up time. Bus was clean enough.',
-    subRatings: { comfort: 3, driver: 4, timeliness: 2, cleanliness: 3 },
-    verified: true,
-  },
-  {
-    id: 5,
-    name: 'Chioma Eze',
-    initials: 'CE',
-    avatarColor: '#16A34A',
-    route: 'Enugu → Lagos',
-    company: 'God is Good Motors',
-    date: 'May 15, 2026',
-    rating: 5,
-    text: 'Exceptional service from start to finish. QR code scan was fast and boarding was orderly.',
-    subRatings: { comfort: 5, driver: 5, timeliness: 5, cleanliness: 5 },
-    verified: true,
-  },
-  {
-    id: 6,
-    name: 'Biodun Olatunji',
-    initials: 'BO',
-    avatarColor: '#9333EA',
-    route: 'Lagos → Benin',
-    company: 'Greener Line',
-    date: 'May 10, 2026',
-    rating: 4,
-    text: 'Reliable company. Journey was smooth apart from one traffic stop. Would recommend to friends.',
-    subRatings: { comfort: 4, driver: 4, timeliness: 4, cleanliness: 5 },
-    verified: true,
-  },
-]
-
-const TOP_COMPANIES: Company[] = [
-  { rank: 1, name: 'God is Good Motors', avgRating: 4.9, reviewCount: 12840, color: '#16A34A' },
-  { rank: 2, name: 'ABC Transport',       avgRating: 4.8, reviewCount: 10320, color: '#0891B2' },
-  { rank: 3, name: 'GUO Transport',       avgRating: 4.7, reviewCount: 8950,  color: '#7C3AED' },
-  { rank: 4, name: 'Chisco Transport',    avgRating: 4.6, reviewCount: 7210,  color: '#D97706' },
-  { rank: 5, name: 'Greener Line',        avgRating: 4.5, reviewCount: 5630,  color: '#9333EA' },
-]
-
 const STAR_FILTERS = ['All', '5', '4', '3', '2', '1'] as const
 type StarFilter = typeof STAR_FILTERS[number]
+
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -329,13 +242,113 @@ function ReviewCard({ review }: { review: Review }) {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function ReviewsPage() {
+  const [reviews, setReviews] = useState<Review[]>([])
+  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState({
+    totalReviews: 0,
+    avgRating: '0.0★',
+    verifiedCompanies: 0,
+    tripsCompleted: 0
+  })
+
   const [starFilter, setStarFilter] = useState<StarFilter>('All')
   const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
-  const TOTAL_PAGES = 24
+
+  useEffect(() => {
+    async function loadData() {
+      setLoading(true)
+      try {
+        const { data: revsData, error: revsErr } = await supabase
+          .from('reviews')
+          .select(`
+            id, comfort, timeliness, driver_conduct, cleanliness, overall, comment, created_at,
+            profiles:user_id (full_name),
+            bookings (
+              trip_id,
+              trips (
+                company_id,
+                companies (name, status),
+                routes (origin, destination)
+              )
+            )
+          `)
+          .order('created_at', { ascending: false })
+
+        const { count: compCount } = await supabase
+          .from('companies')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'APPROVED')
+
+        const { count: tripCount } = await supabase
+          .from('trips')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'COMPLETED')
+
+        if (revsErr) throw revsErr
+
+        let formatted: Review[] = []
+        let totalOverall = 0
+        if (revsData && revsData.length > 0) {
+          formatted = revsData.map((r: any) => {
+            const profile = Array.isArray(r.profiles) ? r.profiles[0] : r.profiles
+            const name = profile?.full_name || 'Passenger'
+            const initials = name
+              .split(' ')
+              .map((w: string) => w[0])
+              .join('')
+              .toUpperCase()
+              .slice(0, 2)
+            
+            const booking = Array.isArray(r.bookings) ? r.bookings[0] : r.bookings
+            const trip = booking?.trips
+            const company = trip?.companies
+            const route = trip?.routes
+            
+            totalOverall += r.overall
+
+            return {
+              id: r.id,
+              name,
+              initials,
+              avatarColor: '#16A34A',
+              route: route ? `${route.origin} → ${route.destination}` : 'Route',
+              company: company?.name || 'Transport Provider',
+              date: new Date(r.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }),
+              rating: r.overall,
+              text: r.comment || '',
+              subRatings: {
+                comfort: r.comfort || 5,
+                driver: r.driver_conduct || 5,
+                timeliness: r.timeliness || 5,
+                cleanliness: r.cleanliness || 5
+              },
+              verified: company?.status === 'APPROVED'
+            }
+          })
+        }
+
+        const avgRatingVal = formatted.length > 0 ? (totalOverall / formatted.length).toFixed(1) : '0.0'
+
+        setReviews(formatted)
+        setStats({
+          totalReviews: formatted.length,
+          avgRating: `${avgRatingVal}★`,
+          verifiedCompanies: compCount || 0,
+          tripsCompleted: tripCount || 0
+        })
+
+      } catch (err) {
+        console.error("Error loading reviews:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadData()
+  }, [])
 
   const filtered = useMemo(() => {
-    let result = ALL_REVIEWS
+    let result = reviews
     if (starFilter !== 'All') {
       const s = parseInt(starFilter)
       result = result.filter((r) => r.rating === s)
@@ -351,7 +364,35 @@ export default function ReviewsPage() {
       )
     }
     return result
-  }, [starFilter, searchQuery])
+  }, [starFilter, searchQuery, reviews])
+
+  const topCompanies: Company[] = useMemo(() => {
+    const map: Record<string, { ratingSum: number; count: number }> = {}
+    reviews.forEach(r => {
+      if (!map[r.company]) {
+        map[r.company] = { ratingSum: 0, count: 0 }
+      }
+      map[r.company].ratingSum += r.rating
+      map[r.company].count++
+    })
+    return Object.entries(map)
+      .map(([name, val], idx) => ({
+        rank: idx + 1,
+        name,
+        avgRating: val.ratingSum / val.count,
+        reviewCount: val.count,
+        color: '#16A34A'
+      }))
+      .sort((a, b) => b.avgRating - a.avgRating)
+      .slice(0, 5)
+  }, [reviews])
+
+  const TOTAL_PAGES = Math.max(1, Math.ceil(filtered.length / 10))
+
+  const paginatedReviews = useMemo(() => {
+    const start = (currentPage - 1) * 10
+    return filtered.slice(start, start + 10)
+  }, [filtered, currentPage])
 
   const clearFilters = () => {
     setStarFilter('All')
@@ -446,7 +487,7 @@ export default function ReviewsPage() {
               lineHeight: 1.15,
             }}
           >
-            Trusted by Thousands of Travelers
+            Passenger Experiences
           </h1>
           <p
             style={{
@@ -472,10 +513,10 @@ export default function ReviewsPage() {
             }}
           >
             {[
-              { icon: <MessageSquare size={20} />, value: '48,291', label: 'Total Reviews', color: '#60A5FA' },
-              { icon: <Star size={20} fill="#F59E0B" color="#F59E0B" />, value: '4.7★', label: 'Avg Rating', color: '#F59E0B' },
-              { icon: <Award size={20} />, value: '127', label: 'Verified Companies', color: '#A78BFA' },
-              { icon: <TrendingUp size={20} />, value: '820K+', label: 'Trips Completed', color: '#34D399' },
+              { icon: <MessageSquare size={20} />, value: stats.totalReviews.toString(), label: 'Total Reviews', color: '#60A5FA' },
+              { icon: <Star size={20} fill="#F59E0B" color="#F59E0B" />, value: stats.avgRating, label: 'Avg Rating', color: '#F59E0B' },
+              { icon: <Award size={20} />, value: stats.verifiedCompanies.toString(), label: 'Verified Companies', color: '#A78BFA' },
+              { icon: <TrendingUp size={20} />, value: stats.tripsCompleted.toString(), label: 'Trips Completed', color: '#34D399' },
             ].map((stat, i) => (
               <div
                 key={i}
@@ -511,6 +552,7 @@ export default function ReviewsPage() {
               </div>
             ))}
           </div>
+
         </div>
 
         {/* ══════════════════ FILTER BAR ══════════════════ */}
@@ -653,12 +695,24 @@ export default function ReviewsPage() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: filtered.length === 0 ? '1fr' : '1fr',
+            gridTemplateColumns: '1fr',
             gap: 24,
           }}
         >
-          {/* Review Cards or Empty State */}
-          {filtered.length === 0 ? (
+          {loading ? (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '80px 24px',
+                textAlign: 'center',
+              }}
+            >
+              <p style={{ fontSize: 15, color: '#64748B' }}>Loading passenger experiences...</p>
+            </div>
+          ) : filtered.length === 0 ? (
             /* ── EMPTY STATE ── */
             <div
               style={{
@@ -693,17 +747,20 @@ export default function ReviewsPage() {
                   margin: '0 0 10px',
                 }}
               >
-                No reviews match your search
+                {hasActiveFilter ? 'No reviews match your search' : 'No reviews submitted yet'}
               </h2>
               <p
                 style={{ fontSize: 15, color: '#64748B', marginBottom: 28, maxWidth: 340, lineHeight: 1.6 }}
               >
-                Try adjusting your star filter or search term, or clear all filters to see all
-                reviews.
+                {hasActiveFilter
+                  ? 'Try adjusting your star filter or search term, or clear all filters to see all reviews.'
+                  : 'Reviews appear automatically after completed trips on the RoutePro platform.'}
               </p>
-              <button onClick={clearFilters} className="mt-btn-primary" style={{ cursor: 'pointer' }}>
-                Clear All Filters
-              </button>
+              {hasActiveFilter && (
+                <button onClick={clearFilters} className="mt-btn-primary" style={{ cursor: 'pointer' }}>
+                  Clear All Filters
+                </button>
+              )}
             </div>
           ) : (
             /* ── REVIEW GRID ── */
@@ -714,7 +771,7 @@ export default function ReviewsPage() {
                 gap: 20,
               }}
             >
-              {filtered.map((review) => (
+              {paginatedReviews.map((review) => (
                 <ReviewCard key={review.id} review={review} />
               ))}
             </div>
@@ -722,7 +779,7 @@ export default function ReviewsPage() {
         </div>
 
         {/* ══════════════════ TOP COMPANIES LEADERBOARD ══════════════════ */}
-        {filtered.length > 0 && (
+        {!loading && topCompanies.length > 0 && (
           <div className="mt-card" style={{ padding: 28, marginTop: 36 }}>
             {/* Header */}
             <div
@@ -771,7 +828,7 @@ export default function ReviewsPage() {
 
             {/* Company rows */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {TOP_COMPANIES.map((company) => {
+              {topCompanies.map((company) => {
                 const rankColors: Record<number, { bg: string; text: string }> = {
                   1: { bg: '#FEF3C7', text: '#92400E' },
                   2: { bg: '#F1F5F9', text: '#475569' },
@@ -781,7 +838,7 @@ export default function ReviewsPage() {
 
                 return (
                   <div
-                    key={company.rank}
+                    key={company.name}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -987,7 +1044,7 @@ export default function ReviewsPage() {
             }}
           >
             Page {currentPage} of {TOTAL_PAGES} · Showing {filtered.length} of{' '}
-            {ALL_REVIEWS.length} displayed reviews
+            {reviews.length} displayed reviews
           </p>
         )}
       </div>

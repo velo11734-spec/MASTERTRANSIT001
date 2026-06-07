@@ -36,6 +36,7 @@ export default function AdminOverviewPage() {
         { data: profiles },
         { data: partners },
         { data: notifs },
+        { count: helpArticles },
       ] = await Promise.all([
         supabase.from('profiles').select('*', { count: 'exact', head: true }),
         supabase.from('companies').select('*', { count: 'exact', head: true }),
@@ -47,6 +48,7 @@ export default function AdminOverviewPage() {
         supabase.from('profiles').select('id, full_name, email, role, created_at').order('created_at', { ascending: false }).limit(5),
         supabase.from('partner_applications').select('id, org_name, partnership_category, status, created_at').order('created_at', { ascending: false }).limit(5),
         supabase.from('admin_notifications').select('*').order('created_at', { ascending: false }).limit(10),
+        supabase.from('help_articles').select('*', { count: 'exact', head: true }),
       ])
 
       setKpis([
@@ -57,7 +59,7 @@ export default function AdminOverviewPage() {
         { label: 'Partner Applications', value: (partnerApps as any)?.count ?? 0, icon: Ticket, color: '#0891B2', bg: '#ECFEFF', href: '/en/admin/companies' },
         { label: 'Open Disputes', value: (openDisputes as any)?.count ?? 0, icon: AlertTriangle, color: '#EA580C', bg: '#FFF7ED', href: '/en/admin/disputes' },
         { label: 'Fraud Flags', value: (fraudFlags as any)?.count ?? 0, icon: Flag, color: '#DC2626', bg: '#FEF2F2', href: '/en/admin/fraud' },
-        { label: 'Help Articles', value: '—', icon: HelpCircle, color: '#475569', bg: '#F8FAFC', href: '/en/admin/help-content' },
+        { label: 'Help Articles', value: (helpArticles as any)?.count ?? 0, icon: HelpCircle, color: '#475569', bg: '#F8FAFC', href: '/en/admin/help-content' },
       ])
 
       setRecentProfiles(profiles || [])

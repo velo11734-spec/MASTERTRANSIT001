@@ -6,11 +6,8 @@ import Link from 'next/link'
 import { Mail, Lock, Eye, EyeOff, User, Phone } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
-type Role = 'passenger' | 'company'
-
 export default function RegisterPage() {
   const router = useRouter()
-  const [role, setRole] = useState<Role>('passenger')
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
@@ -37,7 +34,7 @@ export default function RegisterPage() {
         email,
         password,
         options: {
-          data: { full_name: fullName, phone, role },
+          data: { full_name: fullName, phone, role: 'passenger' },
         },
       })
       if (authError) throw authError
@@ -47,15 +44,11 @@ export default function RegisterPage() {
           id: data.user.id,
           full_name: fullName,
           phone,
-          role
+          role: 'passenger'
         })
       }
 
-      if (role === 'company') {
-        router.push('/en/company/onboarding/step-1')
-      } else {
-        router.push('/en/dashboard')
-      }
+      router.push('/en/dashboard')
     } catch (err: any) {
       setError(err.message || 'Registration failed. Please try again.')
     } finally {
@@ -81,29 +74,6 @@ export default function RegisterPage() {
         </div>
 
         <div className="mt-card" style={{ padding: 24 }}>
-          {/* Role Toggle */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 20, background: '#F1F5F9', borderRadius: 10, padding: 4 }}>
-            {(['passenger', 'company'] as Role[]).map(r => (
-              <button
-                key={r}
-                onClick={() => setRole(r)}
-                style={{
-                  padding: '8px 12px',
-                  borderRadius: 8,
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  background: role === r ? '#FFFFFF' : 'transparent',
-                  color: role === r ? '#16A34A' : '#64748B',
-                  boxShadow: role === r ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
-                  transition: 'all 0.15s',
-                }}
-              >
-                {r === 'passenger' ? '👤 Passenger' : '🚌 Transport Company'}
-              </button>
-            ))}
-          </div>
 
           {error && (
             <div style={{ background: '#FEE2E2', border: '1px solid #FCA5A5', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#DC2626' }}>

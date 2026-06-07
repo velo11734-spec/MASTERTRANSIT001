@@ -122,9 +122,56 @@ export default function PayoutsPage() {
   const approveRequest = async (req: PayoutRequest) => {
     setActionLoading(req.id + '_approve');
     try {
-      await supabase.from('payout_requests').update({ status: 'approved' }).eq('id', req.id);
+      // 1. Get company wallet
+      const { data: wallet } = await supabase
+        .from('company_wallets')
+        .select('*')
+        .eq('company_id', req.company_id)
+        .maybeSingle();
+
+      if (!wallet) throw new Error('Company wallet not found');
+      if (Number(wallet.balance) < req.amount) {
+        throw new Error('Insufficient wallet balance');
+      }
+
+      // 2. Update payout request status to completed
+      await supabase.from('payout_requests').update({ status: 'completed' }).eq('id', req.id);
+
+      // 3. Debit company wallet
+      const newBal = Number(wallet.balance) - req.amount;
+      const newWithdrawn = Number(wallet.total_withdrawn) + req.amount;
+      await supabase.from('company_wallets').update({
+        balance: newBal,
+        total_withdrawn: newWithdrawn
+      }).eq('id', wallet.id);
+
+      // 4. Create wallet transaction ledger entry
+      const ref = `PAY-${req.id.slice(0,8)}-${Date.now()}`;
+      await supabase.from('wallet_transactions').insert({
+        wallet_id: wallet.id,
+        type: 'debit',
+        amount: req.amount,
+        balance_after: newBal,
+        description: `Payout Processed: ${ref}`,
+        reference: ref,
+        payout_id: req.id
+      });
+
+      // 5. Create payouts ledger entry
+      const bankAcc = (req as any).bank_account || { bank: 'Settled Transfer', account: 'N/A' };
+      await supabase.from('payouts').insert({
+        company_id: req.company_id,
+        amount: req.amount,
+        net_amount: req.amount,
+        payout_request_id: req.id,
+        reference: ref,
+        bank_account: bankAcc,
+        status: 'completed',
+        paid_at: new Date().toISOString()
+      });
+
       await logAudit('approve_payout', req.id, { company: req.company_name, amount: req.amount });
-      showToast('Payout approved', true);
+      showToast('Payout approved and settled from company wallet', true);
       fetchAll();
     } catch (err: any) {
       showToast(err.message ?? 'Approve failed', false);

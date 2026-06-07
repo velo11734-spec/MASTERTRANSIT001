@@ -39,17 +39,7 @@ interface Company {
 }
 
 // ─── Fallback Data ────────────────────────────────────────────────────────────
-
-const FALLBACK_COMPANIES: Company[] = [
-  { id: 'f1', name: 'ABC Transport',        city: 'Lagos',  state: 'Lagos State',  rating: 4.8, status: 'verified', reviews: 2340, routes: 48, estYear: 2001 },
-  { id: 'f2', name: 'GUO Transport',         city: 'Abuja',  state: 'FCT',          rating: 4.7, status: 'verified', reviews: 1890, routes: 62, estYear: 1998 },
-  { id: 'f3', name: 'Chisco Transport',      city: 'Lagos',  state: 'Lagos State',  rating: 4.6, status: 'verified', reviews: 1245, routes: 35, estYear: 2003 },
-  { id: 'f4', name: 'Peace Mass Transit',    city: 'Enugu',  state: 'Enugu State',  rating: 4.5, status: 'verified', reviews: 2100, routes: 55, estYear: 1999 },
-  { id: 'f5', name: 'God is Good Motors',    city: 'PH',     state: 'Rivers State', rating: 4.9, status: 'verified', reviews: 3421, routes: 71, estYear: 1997 },
-  { id: 'f6', name: 'Greener Line',          city: 'Lagos',  state: 'Lagos State',  rating: 4.4, status: 'verified', reviews: 876,  routes: 28, estYear: 2008 },
-  { id: 'f7', name: 'Young Shall Grow',      city: 'Abuja',  state: 'FCT',          rating: 4.3, status: 'verified', reviews: 654,  routes: 22, estYear: 2005 },
-  { id: 'f8', name: 'Cross Country',         city: 'Kano',   state: 'Kano State',   rating: 4.2, status: 'verified', reviews: 432,  routes: 18, estYear: 2010 },
-];
+// Removed mock fallback companies
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -324,13 +314,13 @@ export default function CompaniesPage() {
           .eq('status', 'verified')
           .order('rating', { ascending: false });
 
-        if (error || !data || data.length === 0) {
-          setCompanies(FALLBACK_COMPANIES);
+        if (error || !data) {
+          setCompanies([]);
         } else {
           setCompanies(data as Company[]);
         }
       } catch {
-        setCompanies(FALLBACK_COMPANIES);
+        setCompanies([]);
       } finally {
         setLoading(false);
       }

@@ -8,44 +8,6 @@ import {
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
-// Mock data for dashboard
-const mockBookings = [
-  {
-    id: 'BK001',
-    from: 'Lagos', to: 'Abuja',
-    date: '2024-05-28', time: '08:00 AM',
-    company: 'ABC Transport',
-    seat: 'B3',
-    status: 'confirmed',
-    amount: 7500,
-  },
-  {
-    id: 'BK002',
-    from: 'Abuja', to: 'Kano',
-    date: '2024-06-02', time: '09:00 AM',
-    company: 'GUO Transport',
-    seat: 'A1',
-    status: 'pending',
-    amount: 12000,
-  },
-  {
-    id: 'BK003',
-    from: 'Lagos', to: 'Ibadan',
-    date: '2024-04-15', time: '07:00 AM',
-    company: 'Chisco Transport',
-    seat: 'C4',
-    status: 'completed',
-    amount: 4200,
-  },
-]
-
-const stats = [
-  { label: 'Total Trips', value: '12', icon: Bus, color: '#16A34A', bg: '#DCFCE7' },
-  { label: 'Upcoming', value: '2', icon: CalendarDays, color: '#2563EB', bg: '#DBEAFE' },
-  { label: 'E-Tickets', value: '12', icon: Ticket, color: '#7C3AED', bg: '#EDE9FE' },
-  { label: 'Reviews Left', value: '3', icon: Star, color: '#D97706', bg: '#FEF3C7' },
-]
-
 const statusStyle: Record<string, { bg: string; color: string; label: string }> = {
   confirmed: { bg: '#DCFCE7', color: '#15803D', label: 'Confirmed' },
   pending:   { bg: '#FEF9C3', color: '#854D0E', label: 'Pending' },
@@ -53,24 +15,90 @@ const statusStyle: Record<string, { bg: string; color: string; label: string }> 
   cancelled: { bg: '#FEE2E2', color: '#DC2626', label: 'Cancelled' },
 }
 
+import NotificationPanel from '@/components/layout/NotificationPanel'
+
 export default function PassengerDashboard() {
   const [userName, setUserName] = useState('User')
   const [initials, setInitials] = useState('U')
+  const [bookings, setBookings] = useState<any[]>([])
+  const [stats, setStats] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function loadUser() {
+    async function loadDashboardData() {
       try {
         const { data: { user } } = await supabase.auth.getUser()
-        if (user) {
-          const name = user.user_metadata?.full_name || 'Passenger'
-          setUserName(name.split(' ')[0])
-          setInitials(name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase())
+        if (!user) {
+          setLoading(false)
+          return
+        }
+
+        const name = user.user_metadata?.full_name || 'Passenger'
+        setUserName(name.split(' ')[0])
+        setInitials(name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase())
+
+        // Fetch bookings for statistics calculation
+        const { data: bookingData, error } = await supabase
+          .from('bookings')
+          .select(`
+            id,
+            reference,
+            seat_numbers,
+            total_price,
+            status,
+            created_at,
+            trip:trip_id (
+              departure_at,
+              route:route_id (origin, destination),
+              company:company_id (name)
+            )
+          `)
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+
+        if (error) throw error
+
+        if (bookingData) {
+          const formatted = bookingData.map((b: any) => {
+            const trip = Array.isArray(b.trip) ? b.trip[0] : b.trip
+            const route = trip?.route ? (Array.isArray(trip.route) ? trip.route[0] : trip.route) : null
+            const company = trip?.company ? (Array.isArray(trip.company) ? trip.company[0] : trip.company) : null
+            const depDate = trip?.departure_at ? new Date(trip.departure_at) : new Date()
+
+            return {
+              id: b.reference || b.id.slice(0, 8),
+              from: route?.origin || 'Unknown',
+              to: route?.destination || 'Unknown',
+              date: depDate.toLocaleDateString(),
+              time: depDate.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
+              company: company?.name || 'Transport Operator',
+              seat: Array.isArray(b.seat_numbers) ? b.seat_numbers.join(', ') : (b.seat_numbers || 'N/A'),
+              status: b.status?.toLowerCase() || 'pending',
+              amount: b.total_price || 0
+            }
+          })
+
+          setBookings(formatted.slice(0, 3)) // recent 3
+
+          // Calculate stats
+          const totalTrips = formatted.length
+          const upcomingTrips = formatted.filter(b => b.status === 'confirmed' || b.status === 'pending').length
+          const completedTrips = formatted.filter(b => b.status === 'completed').length
+
+          setStats([
+            { label: 'Total Trips', value: totalTrips.toString(), icon: Bus, color: '#16A34A', bg: '#DCFCE7' },
+            { label: 'Upcoming', value: upcomingTrips.toString(), icon: CalendarDays, color: '#2563EB', bg: '#DBEAFE' },
+            { label: 'Completed', value: completedTrips.toString(), icon: Ticket, color: '#7C3AED', bg: '#EDE9FE' },
+            { label: 'Recent', value: formatted.length > 0 ? formatted[0].date : 'N/A', icon: Clock, color: '#D97706', bg: '#FEF3C7' },
+          ])
         }
       } catch (err) {
-        console.error('Error loading user in dashboard:', err)
+        console.error('Error loading dashboard:', err)
+      } finally {
+        setLoading(false)
       }
     }
-    loadUser()
+    loadDashboardData()
   }, [])
 
   return (
@@ -85,11 +113,8 @@ export default function PassengerDashboard() {
               {userName}
             </h1>
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button style={{ width: 38, height: 38, background: '#fff', border: '1px solid #E2E8F0', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative' }}>
-              <Bell size={18} color="#64748B" />
-              <span style={{ position: 'absolute', top: 6, right: 6, width: 8, height: 8, background: '#DC2626', borderRadius: '50%', border: '2px solid #fff' }} />
-            </button>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <NotificationPanel />
             <Link href="/en/dashboard/profile">
               <div style={{ width: 38, height: 38, background: '#16A34A', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
                 {initials}
@@ -136,8 +161,15 @@ export default function PassengerDashboard() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {mockBookings.map(booking => {
-              const s = statusStyle[booking.status]
+            {loading ? (
+              <p style={{ fontSize: 13, color: '#64748B', textAlign: 'center', padding: 20 }}>Loading dashboard summary...</p>
+            ) : bookings.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: 20 }}>
+                <p style={{ fontSize: 13, color: '#94A3B8' }}>No bookings found.</p>
+                <Link href="/en/search" style={{ fontSize: 13, color: '#16A34A', textDecoration: 'none', display: 'inline-block', marginTop: 8, fontWeight: 600 }}>Book your first trip now</Link>
+              </div>
+            ) : bookings.map(booking => {
+              const s = statusStyle[booking.status] || { bg: '#F1F5F9', color: '#64748B', label: booking.status }
               return (
                 <Link key={booking.id} href={`/en/dashboard/bookings/${booking.id}`} style={{ textDecoration: 'none', display: 'block', padding: 14, background: '#F8FAFC', borderRadius: 10, border: '1px solid #F1F5F9', transition: 'border-color 0.15s' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>

@@ -9,46 +9,6 @@ import {
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
-// Fallback demo trips if DB is empty
-const demoTrips = [
-  {
-    id: 'demo-1',
-    company: 'ABC Transport',
-    companyInitials: 'AT',
-    companyColor: '#1E40AF',
-    rating: 4.8,
-    verified: true,
-    class: 'Executive',
-    amenities: ['Air Conditioning', 'WiFi'],
-    departure: '08:00',
-    arrival: '14:30',
-    duration: '6h 30m',
-    from: 'Lagos',
-    to: 'Abuja',
-    seatsLeft: 42,
-    price: 17500,
-    currency: '₦',
-  },
-  {
-    id: 'demo-2',
-    company: 'God is Good Motors',
-    companyInitials: 'GIGM',
-    companyColor: '#DC2626',
-    rating: 4.7,
-    verified: true,
-    class: 'Executive',
-    amenities: ['Air Conditioning', 'WiFi'],
-    departure: '09:00',
-    arrival: '15:30',
-    duration: '6h 30m',
-    from: 'Lagos',
-    to: 'Abuja',
-    seatsLeft: 31,
-    price: 18000,
-    currency: '₦',
-  }
-]
-
 function getDateTabs() {
   const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
@@ -80,8 +40,8 @@ function StarRow({ rating }: { rating: number }) {
 export default function SearchPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const from = searchParams.get('from') || 'Lagos'
-  const to = searchParams.get('to') || 'Abuja'
+  const from = searchParams.get('from') || ''
+  const to = searchParams.get('to') || ''
   const date = searchParams.get('date') || new Date().toISOString().split('T')[0]
 
   const [selectedDate, setSelectedDate] = useState(date)
@@ -148,18 +108,11 @@ export default function SearchPage() {
         })
         setTrips(formatted)
       } else {
-        // Fallback to demo trips customized to search criteria
-        const customizedDemo = demoTrips.map(dt => ({
-          ...dt,
-          from,
-          to,
-          isDemo: true
-        }))
-        setTrips(customizedDemo)
+        setTrips([])
       }
     } catch (err) {
-      console.error('Search query error, using demo fallbacks:', err)
-      setTrips(demoTrips.map(dt => ({ ...dt, from, to, isDemo: true })))
+      console.error('Search query error:', err)
+      setTrips([])
     } finally {
       setLoading(false)
     }
@@ -199,7 +152,7 @@ export default function SearchPage() {
             </button>
             <div>
               <h1 style={{ fontSize: 16, fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 6 }}>
-                {from} <ArrowRight size={14} color="#94A3B8" /> {to}
+                {from || 'Anywhere'} <ArrowRight size={14} color="#94A3B8" /> {to || 'Anywhere'}
               </h1>
               <p style={{ fontSize: 12, color: '#94A3B8' }}>{selectedDate} • Search Results</p>
             </div>
@@ -263,13 +216,13 @@ export default function SearchPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {loading ? (
             <div style={{ padding: 40, textAlign: 'center', color: '#64748B' }}>Searching available departures...</div>
+          ) : sortedTrips.length === 0 ? (
+            <div className="mt-card" style={{ padding: 40, textAlign: 'center' }}>
+              <Search size={40} color="#E2E8F0" style={{ margin: '0 auto 12px' }} />
+              <p style={{ fontSize: 14, color: '#94A3B8' }}>No trips found for this route on the selected date.</p>
+            </div>
           ) : sortedTrips.map(trip => (
             <div key={trip.id} className="mt-card" style={{ padding: 16, position: 'relative' }}>
-              {trip.isDemo && (
-                <span style={{ position: 'absolute', top: 12, right: 12, fontSize: 10, background: '#EFF6FF', color: '#1E40AF', padding: '2px 8px', borderRadius: 4, fontWeight: 600 }}>
-                  Demo Route
-                </span>
-              )}
               {/* Company header */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
