@@ -1,0 +1,6 @@
+C:\Users\MARO\front end project feranmi v00.01\MASTER TRANSIT V00.01\mastertransit\app\[locale]\auth\reset-password\page.tsx:20:redirectTo: `${window.location.origin}/en/auth/update-password`,
+C:\Users\MARO\front end project feranmi v00.01\MASTER TRANSIT V00.01\mastertransit\app\[locale]\login\page.tsx:153:onClick={() => supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/api/auth/callback` } })}
+C:\Users\MARO\front end project feranmi v00.01\MASTER TRANSIT V00.01\mastertransit\app\[locale]\login\page.tsx:162:onClick={() => supabase.auth.signInWithOAuth({ provider: 'apple', options: { redirectTo: `${window.location.origin}/api/auth/callback` } })}
+C:\Users\MARO\front end project feranmi v00.01\MASTER TRANSIT V00.01\mastertransit\app\[locale]\register\page.tsx:141:onClick={() => supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/api/auth/callback` } })}
+C:\Users\MARO\front end project feranmi v00.01\MASTER TRANSIT V00.01\mastertransit\app\[locale]\register\page.tsx:150:onClick={() => supabase.auth.signInWithOAuth({ provider: 'apple', options: { redirectTo: `${window.location.origin}/api/auth/callback` } })}
+C:\Users\MARO\front end project feranmi v00.01\MASTER TRANSIT V00.01\mastertransit\.env.local:24:NEXT_PUBLIC_APP_URL=http://localhost:3000

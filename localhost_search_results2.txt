@@ -1,0 +1,5 @@
+C:\Users\MARO\front end project feranmi v00.01\MASTER TRANSIT V00.01\mastertransit\.env.local:24:NEXT_PUBLIC_APP_URL=http://localhost:3000
+C:\Users\MARO\front end project feranmi v00.01\MASTER TRANSIT V00.01\mastertransit\search_localhost.js:4:const searchRegex = /localhost/i;
+C:\Users\MARO\front end project feranmi v00.01\MASTER TRANSIT V00.01\mastertransit\search_localhost.js:34:fs.writeFileSync('localhost_search_results.txt', results.join('\n'));
+C:\Users\MARO\front end project feranmi v00.01\MASTER TRANSIT V00.01\mastertransit\search_localhost_broad.js:4:const searchRegex = /localhost|127\.0\.0\.1|5173/i;
+C:\Users\MARO\front end project feranmi v00.01\MASTER TRANSIT V00.01\mastertransit\search_localhost_broad.js:33:fs.writeFileSync('localhost_search_results2.txt', results.join('\n'));

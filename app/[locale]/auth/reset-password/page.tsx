@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { CheckCircle2, AlertCircle } from 'lucide-react'
+import { getAppUrl } from '@/lib/utils/url'
 
 export default function ResetPasswordPage() {
   const [email, setEmail] = useState('')
@@ -17,7 +18,7 @@ export default function ResetPasswordPage() {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/en/auth/update-password`,
+        redirectTo: `${getAppUrl()}/en/auth/update-password`,
       })
 
       if (error) {

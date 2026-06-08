@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { getAppUrl } from '@/lib/utils/url'
 import { Mail, Lock, Eye, EyeOff, User, Phone } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
@@ -138,7 +139,7 @@ export default function RegisterPage() {
           <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
             <button 
               type="button" 
-              onClick={() => supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/api/auth/callback` } })}
+              onClick={() => supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${getAppUrl()}/api/auth/callback` } })}
               className="mt-btn-outline" 
               style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8 }}
             >
@@ -147,7 +148,7 @@ export default function RegisterPage() {
             </button>
             <button 
               type="button" 
-              onClick={() => supabase.auth.signInWithOAuth({ provider: 'apple', options: { redirectTo: `${window.location.origin}/api/auth/callback` } })}
+              onClick={() => supabase.auth.signInWithOAuth({ provider: 'apple', options: { redirectTo: `${getAppUrl()}/api/auth/callback` } })}
               className="mt-btn-outline" 
               style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8 }}
             >
