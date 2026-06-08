@@ -31,23 +31,23 @@ export default function LanguageSwitcher() {
         <button
           onClick={() => setOpen(!open)}
           type="button"
-          className="inline-flex justify-center items-center w-full rounded-xl border border-gray-800 shadow-sm px-4 py-2 bg-[#0f0f1a] text-sm font-medium text-gray-300 hover:bg-[#161625] focus:outline-none"
+          className="inline-flex justify-center items-center rounded-xl border border-gray-200 bg-white px-3.5 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
         >
           🌐 <span className="ml-2 uppercase">{locale}</span>
         </button>
       </div>
 
       {open && (
-        <div className="origin-top-right absolute right-0 mt-2 w-44 rounded-xl shadow-lg bg-[#0f0f1a] border border-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+        <div className="origin-top-right absolute right-0 mt-2 w-40 rounded-xl bg-white border border-gray-150 shadow-xl ring-1 ring-black ring-opacity-5 focus:outline-none z-50 dark:bg-gray-800 dark:border-gray-700">
           <div className="py-1">
             {languages.map((lang) => (
               <button
                 key={lang.code}
                 onClick={() => selectLanguage(lang.code)}
-                className={`w-full text-left block px-4 py-2.5 text-sm transition-all duration-200 ${
+                className={`w-full text-left block px-4 py-2 text-sm transition-colors duration-150 ${
                   locale === lang.code
-                    ? 'bg-[#4f46e5] text-white'
-                    : 'text-gray-300 hover:bg-[#161625]'
+                    ? 'bg-[#16A34A] text-white font-semibold'
+                    : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700'
                 }`}
               >
                 {lang.name}

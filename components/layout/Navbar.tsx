@@ -152,7 +152,9 @@ export default function Navbar() {
         >
           {dark ? <Sun size={18} /> : <Moon size={18} />}
         </button>
-        <LanguageSwitcher />
+        <div className="hidden sm:inline-block">
+          <LanguageSwitcher />
+        </div>
 
         {sessionUser ? (
           <>
@@ -279,6 +281,11 @@ export default function Navbar() {
                   </Link>
                 </div>
               )}
+              <div style={{ height: 1, background: '#F1F5F9', margin: '8px 0' }} />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 16px' }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: '#64748B' }}>Language / Switch Locale</span>
+                <LanguageSwitcher />
+              </div>
             </nav>
           </div>
         </>

@@ -53,9 +53,9 @@ export default function LegalPageLayout({ title, subtitle, lastUpdated = 'June 2
       </div>
 
       {/* Content */}
-      <div style={{ maxWidth: 1160, margin: '0 auto', padding: '40px 24px 80px', display: 'grid', gridTemplateColumns: '260px 1fr', gap: 36, alignItems: 'start' }}>
+      <div className="legal-grid" style={{ maxWidth: 1160, margin: '0 auto', padding: 'clamp(20px, 4vw, 40px) 24px 80px' }}>
         {/* Sidebar Nav */}
-        <aside style={{ position: 'sticky', top: 90 }}>
+        <aside className="legal-sidebar" style={{ position: 'sticky', top: 90 }}>
           <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #E2E8F0', padding: '20px 0', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
             <p style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.1em', padding: '0 20px 12px', borderBottom: '1px solid #F1F5F9', margin: 0 }}>
               All Policies
@@ -88,7 +88,7 @@ export default function LegalPageLayout({ title, subtitle, lastUpdated = 'June 2
         </aside>
 
         {/* Main Content */}
-        <main style={{ background: '#fff', borderRadius: 20, border: '1px solid #E2E8F0', padding: '44px 48px', boxShadow: '0 2px 16px rgba(0,0,0,0.05)', minWidth: 0 }}>
+        <main className="legal-main" style={{ background: '#fff', borderRadius: 20, border: '1px solid #E2E8F0', padding: 'clamp(24px, 5vw, 44px) clamp(20px, 5vw, 48px)', boxShadow: '0 2px 16px rgba(0,0,0,0.05)', minWidth: 0 }}>
           {children}
 
           {/* Footer Attribution */}

@@ -668,3 +668,50 @@ h1, h2, h3, h4, h5, h6 {
   .mt-bottom-nav, .mt-sidebar, .mt-navbar { display: none !important; }
   .mt-main { margin: 0 !important; padding: 0 !important; }
 }
+
+/* ── Legal Page Layout ──────────────────────────────────────── */
+.legal-grid {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 36px;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .legal-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .legal-sidebar {
+    position: relative !important;
+    top: 0 !important;
+  }
+}
+
+/* ── Footer Responsive Grid ─────────────────────────────────── */
+.footer-grid {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 32px;
+}
+
+.footer-legal-nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+}
+
+@media (max-width: 768px) {
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer-legal-nav {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}

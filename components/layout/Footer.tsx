@@ -56,7 +56,6 @@ export default function Footer({ settings = {}, locale = 'en' }: FooterProps) {
     fontSize: 12,
     textDecoration: 'none',
     transition: 'color 0.2s',
-    whiteSpace: 'nowrap',
   }
   const greenLinkStyle: React.CSSProperties = {
     color: '#16A34A',
@@ -64,7 +63,6 @@ export default function Footer({ settings = {}, locale = 'en' }: FooterProps) {
     fontWeight: 600,
     textDecoration: 'none',
     transition: 'color 0.2s',
-    whiteSpace: 'nowrap',
   }
 
   return (
@@ -78,13 +76,7 @@ export default function Footer({ settings = {}, locale = 'en' }: FooterProps) {
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
         {/* Top Row — Brand + Columns */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'auto 1fr 1fr',
-          gap: '40px',
-          marginBottom: 32,
-          flexWrap: 'wrap',
-        } as React.CSSProperties}>
+        <div className="footer-grid">
 
           {/* Brand */}
           <div style={{ minWidth: 180 }}>
@@ -126,7 +118,7 @@ export default function Footer({ settings = {}, locale = 'en' }: FooterProps) {
             <p style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>
               Legal & Policies
             </p>
-            <nav style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px' }}>
+            <nav className="footer-legal-nav">
               {legalLinks.map(l => (
                 <Link key={l.href} href={l.href} style={linkStyle}
                   onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#CBD5E1' }}
