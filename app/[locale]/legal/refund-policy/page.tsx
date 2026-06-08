@@ -37,7 +37,8 @@ export default async function RefundPolicyPage({ params }: Props) {
       <h2 style={h2}>1. Booking Cancellations</h2>
       <p style={p}>Refund eligibility for transport bookings depends on how far in advance the cancellation is made:</p>
       <div style={{ border: '1px solid #E2E8F0', borderRadius: 12, overflow: 'hidden', marginBottom: 20 }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div className="mt-table-wrap">
+<table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: '#F8FAFC' }}>
               <th style={{ padding: '12px 16px', fontSize: 12, fontWeight: 700, color: '#94A3B8', textAlign: 'left', textTransform: 'uppercase' }}>Scenario</th>
@@ -55,6 +56,7 @@ export default async function RefundPolicyPage({ params }: Props) {
             ].map(([l, pp, c]) => tableRow(l as string, pp as string, c as string))}
           </tbody>
         </table>
+</div>
       </div>
 
       <h2 style={h2}>2. Rental Cancellations</h2>

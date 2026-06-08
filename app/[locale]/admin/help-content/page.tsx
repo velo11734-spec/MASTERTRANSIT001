@@ -278,7 +278,8 @@ export default function HelpContentPage() {
             <EmptyState icon={<FolderOpen size={36}/>} label="No categories yet" action={<button onClick={openAddCat} style={{ marginTop: 12, padding: '8px 20px', background: '#16A34A', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>Add First Category</button>}/>
           ) : (
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+              <div className="mt-table-wrap">
+<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
                 <thead>
                   <tr style={{ background: '#F8FAFC' }}>
                     {['Name', 'Slug', 'Articles', 'Active', 'Sort Order', 'Actions'].map((h) => (
@@ -313,6 +314,7 @@ export default function HelpContentPage() {
                   ))}
                 </tbody>
               </table>
+</div>
             </div>
           )}
         </div>
@@ -343,7 +345,8 @@ export default function HelpContentPage() {
             <EmptyState icon={<BookOpen size={36}/>} label="No articles yet" action={<button onClick={openAddArt} style={{ marginTop: 12, padding: '8px 20px', background: '#16A34A', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>Write First Article</button>}/>
           ) : (
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+              <div className="mt-table-wrap">
+<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
                 <thead>
                   <tr style={{ background: '#F8FAFC' }}>
                     {['Title', 'Category', 'Published', 'Views', 'Date', 'Actions'].map((h) => (
@@ -376,6 +379,7 @@ export default function HelpContentPage() {
                   ))}
                 </tbody>
               </table>
+</div>
             </div>
           )}
         </div>

@@ -54,7 +54,8 @@ export default function CustomersPage() {
           </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 13 }}>
+            <div className="mt-table-wrap">
+<table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 13 }}>
               <thead>
                 <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
                   <th style={{ padding: '14px 16px', fontWeight: 600, color: '#475569' }}>Name</th>
@@ -76,6 +77,7 @@ export default function CustomersPage() {
                 ))}
               </tbody>
             </table>
+</div>
           </div>
         )}
       </div>

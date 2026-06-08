@@ -286,7 +286,8 @@ export default function PaymentsPage() {
           </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+            <div className="mt-table-wrap">
+<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
               <thead>
                 <tr style={{ background: '#F8FAFC' }}>
                   {['Reference', 'Amount', 'Gateway', 'Status', 'Date', 'Actions'].map((h) => (
@@ -317,6 +318,7 @@ export default function PaymentsPage() {
                 })}
               </tbody>
             </table>
+</div>
           </div>
         )}
       </div>

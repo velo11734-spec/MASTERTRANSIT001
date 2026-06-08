@@ -165,7 +165,8 @@ export default function TripsPage() {
             <p style={{ fontSize: '13px', marginTop: '6px' }}>Trips will appear here once transport companies add their schedules.</p>
           </div>
         ) : (
-          <table style={s.table}>
+          <div className="mt-table-wrap">
+<table style={s.table}>
             <thead>
               <tr>
                 {['Route', 'Company', 'Departure', 'Arrival', 'Seats', 'Price', 'Status', 'Actions'].map(h => (
@@ -212,6 +213,7 @@ export default function TripsPage() {
               })}
             </tbody>
           </table>
+</div>
         )}
       </div>
 

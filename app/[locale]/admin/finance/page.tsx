@@ -179,7 +179,8 @@ export default function AdminFinancePage() {
                 </div>
               ) : (
                 <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                  <div className="mt-table-wrap">
+<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                     <thead>
                       <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', textAlign: 'left', color: '#64748B' }}>
                         <th style={{ padding: '10px 8px' }}>Source</th>
@@ -210,6 +211,7 @@ export default function AdminFinancePage() {
                       })}
                     </tbody>
                   </table>
+</div>
                 </div>
               )}
             </div>

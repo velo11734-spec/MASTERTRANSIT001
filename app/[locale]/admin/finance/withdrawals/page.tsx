@@ -110,7 +110,8 @@ export default function AdminWithdrawalsPage() {
         ) : requests.length === 0 ? (
           <div style={{ padding: 40, textAlign: 'center', color: '#64748B' }}>No withdrawal requests found.</div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <div className="mt-table-wrap">
+<table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
               <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
                 <th style={{ padding: '16px 20px', fontSize: 13, fontWeight: 600, color: '#475569' }}>Date</th>
@@ -175,6 +176,7 @@ export default function AdminWithdrawalsPage() {
               ))}
             </tbody>
           </table>
+</div>
         )}
       </div>
     </div>

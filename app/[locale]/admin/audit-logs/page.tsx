@@ -164,7 +164,8 @@ export default function AuditLogsPage() {
           </div>
         ) : (
           <>
-            <table style={s.table}>
+            <div className="mt-table-wrap">
+<table style={s.table}>
               <thead>
                 <tr>
                   {['Timestamp', 'Actor', 'Action', 'Entity', 'Details'].map(h => (
@@ -204,6 +205,7 @@ export default function AuditLogsPage() {
                 })}
               </tbody>
             </table>
+</div>
 
             {/* Pagination */}
             {totalPages > 1 && (

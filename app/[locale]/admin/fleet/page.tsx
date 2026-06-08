@@ -215,7 +215,8 @@ export default function AdminFleetPage() {
         </div>
       ) : (
         <div style={{ background: '#FFFFFF', borderRadius: 16, border: '1px solid #E2E8F0', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 13 }}>
+          <div className="mt-table-wrap">
+<table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 13 }}>
             <thead>
               <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
                 <th style={{ padding: '14px 20px', color: '#475569', fontWeight: 700 }}>Plate Number</th>
@@ -312,6 +313,7 @@ export default function AdminFleetPage() {
               ))}
             </tbody>
           </table>
+</div>
         </div>
       )}
 

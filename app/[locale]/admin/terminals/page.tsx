@@ -135,7 +135,8 @@ export default function AdminTerminalsPage() {
         ) : terminals.length === 0 ? (
           <div style={s.empty}><MapPin size={40} style={{ display: 'block', margin: '0 auto 12px', color: '#334155' }} /><div style={{ fontSize: 15, fontWeight: 600, color: '#94A3B8' }}>No terminals yet</div><div style={{ fontSize: 13, marginTop: 8 }}><button onClick={openAdd} style={{ ...s.addBtn, margin: '0 auto' }}>Add your first terminal</button></div></div>
         ) : (
-          <table style={s.table}>
+          <div className="mt-table-wrap">
+<table style={s.table}>
             <thead><tr>{['Name', 'City', 'State', 'Country', 'Hours', 'Status', 'Actions'].map(h => <th key={h} style={s.th}>{h}</th>)}</tr></thead>
             <tbody>
               {terminals.map(t => (
@@ -160,6 +161,7 @@ export default function AdminTerminalsPage() {
               ))}
             </tbody>
           </table>
+</div>
         )}
       </div>
 

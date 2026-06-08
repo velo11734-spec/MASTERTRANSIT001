@@ -260,7 +260,8 @@ export default function ReviewsPage() {
               </div>
             ) : (
               <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+                <div className="mt-table-wrap">
+<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
                   <thead>
                     <tr style={{ background: '#F8FAFC' }}>
                       {['Reviewer', 'Company', 'Rating', 'Review', 'Status', 'Date', 'Actions'].map((h) => (
@@ -304,6 +305,7 @@ export default function ReviewsPage() {
                     ))}
                   </tbody>
                 </table>
+</div>
               </div>
             )}
           </>

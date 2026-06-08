@@ -189,7 +189,8 @@ export default function SecurityPage() {
             <p style={{ marginTop: '10px' }}>No activity recorded yet.</p>
           </div>
         ) : (
-          <table style={s.table}>
+          <div className="mt-table-wrap">
+<table style={s.table}>
             <thead>
               <tr>
                 {['Actor', 'Action', 'Entity', 'Timestamp'].map(h => <th key={h} style={s.th}>{h}</th>)}
@@ -206,6 +207,7 @@ export default function SecurityPage() {
               ))}
             </tbody>
           </table>
+</div>
         )}
       </div>
 

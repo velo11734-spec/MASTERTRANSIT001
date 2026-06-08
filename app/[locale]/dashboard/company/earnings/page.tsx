@@ -235,7 +235,8 @@ export default function CompanyEarningsPage() {
                 </div>
               ) : (
                 <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                  <div className="mt-table-wrap">
+<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                     <thead>
                       <tr style={{ borderBottom: '1px solid #E2E8F0', textAlign: 'left', color: '#64748B' }}>
                         <th style={{ padding: '10px 8px' }}>Tx Type</th>
@@ -263,6 +264,7 @@ export default function CompanyEarningsPage() {
                       ))}
                     </tbody>
                   </table>
+</div>
                 </div>
               )}
             </div>

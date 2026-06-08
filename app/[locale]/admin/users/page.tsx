@@ -174,7 +174,8 @@ export default function AdminUsersPage() {
         ) : filtered.length === 0 ? (
           <div style={styles.emptyState}><Users size={40} style={{ margin: '0 auto 12px', display: 'block', color: '#334155' }} />No users found</div>
         ) : (
-          <table style={styles.table}>
+          <div className="mt-table-wrap">
+<table style={styles.table}>
             <thead>
               <tr>
                 {['Name', 'Email', 'Phone', 'Role', 'Joined', 'Actions'].map(h => <th key={h} style={styles.th}>{h}</th>)}
@@ -209,6 +210,7 @@ export default function AdminUsersPage() {
               ))}
             </tbody>
           </table>
+</div>
         )}
       </div>
 

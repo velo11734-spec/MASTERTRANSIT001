@@ -250,7 +250,8 @@ export default function AdminSubscriptionsPage() {
               </div>
             ) : (
               <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                <div className="mt-table-wrap">
+<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', textAlign: 'left', color: '#64748B' }}>
                       <th style={{ padding: '12px 8px' }}>Transport Partner</th>
@@ -288,6 +289,7 @@ export default function AdminSubscriptionsPage() {
                     ))}
                   </tbody>
                 </table>
+</div>
               </div>
             )}
           </div>

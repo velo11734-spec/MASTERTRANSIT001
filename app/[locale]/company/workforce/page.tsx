@@ -141,7 +141,8 @@ export default function WorkforceManagement() {
           <p style={{ color: '#64748B', fontSize: 13 }}>No active employees found. Invite your first employee to get started.</p>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <div className="mt-table-wrap">
+<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #E2E8F0', textAlign: 'left' }}>
                   <th style={{ padding: '12px 8px', color: '#475569' }}>Name / Email</th>
@@ -172,6 +173,7 @@ export default function WorkforceManagement() {
                 ))}
               </tbody>
             </table>
+</div>
           </div>
         )}
       </div>

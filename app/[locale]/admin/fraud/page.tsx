@@ -178,7 +178,8 @@ export default function FraudPage() {
             <p style={{ fontSize: '13px', marginTop: '6px' }}>The platform is clean — no fraud activity detected yet.</p>
           </div>
         ) : (
-          <table style={s.table}>
+          <div className="mt-table-wrap">
+<table style={s.table}>
             <thead>
               <tr>
                 {['Entity Type', 'Entity ID', 'Reason', 'Severity', 'Status', 'Date', 'Actions'].map(h => (
@@ -206,6 +207,7 @@ export default function FraudPage() {
               })}
             </tbody>
           </table>
+</div>
         )}
       </div>
 

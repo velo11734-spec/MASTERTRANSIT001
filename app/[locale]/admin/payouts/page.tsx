@@ -263,7 +263,8 @@ export default function PayoutsPage() {
             {companies.length === 0 ? (
               <EmptyState icon={<Building2 size={36}/>} label="No companies found" />
             ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+              <div className="mt-table-wrap">
+<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
                 <thead>
                   <tr style={{ background: '#F8FAFC' }}>
                     {['Company', 'Balance', 'Status', 'Last Payout', 'Actions'].map((h) => (
@@ -300,6 +301,7 @@ export default function PayoutsPage() {
                   ))}
                 </tbody>
               </table>
+</div>
             )}
           </SectionCard>
 
@@ -308,7 +310,8 @@ export default function PayoutsPage() {
             {requests.length === 0 ? (
               <EmptyState icon={<Clock size={36}/>} label="No payout requests" />
             ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+              <div className="mt-table-wrap">
+<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
                 <thead>
                   <tr style={{ background: '#F8FAFC' }}>
                     {['Company', 'Amount', 'Status', 'Date', 'Actions'].map((h) => (
@@ -335,6 +338,7 @@ export default function PayoutsPage() {
                   ))}
                 </tbody>
               </table>
+</div>
             )}
           </SectionCard>
 
@@ -343,7 +347,8 @@ export default function PayoutsPage() {
             {settlements.length === 0 ? (
               <EmptyState icon={<DollarSign size={36}/>} label="No settlement history" />
             ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+              <div className="mt-table-wrap">
+<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
                 <thead>
                   <tr style={{ background: '#F8FAFC' }}>
                     {['Company', 'Amount', 'Status', 'Date'].map((h) => (
@@ -362,6 +367,7 @@ export default function PayoutsPage() {
                   ))}
                 </tbody>
               </table>
+</div>
             )}
           </SectionCard>
         </>

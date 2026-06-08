@@ -215,7 +215,8 @@ export default function RoutesPage() {
             <p style={{ fontSize: '13px', marginTop: '6px' }}>Add your first route to get started.</p>
           </div>
         ) : (
-          <table style={s.table}>
+          <div className="mt-table-wrap">
+<table style={s.table}>
             <thead>
               <tr>
                 {['Route Name', 'Origin → Destination', 'Distance', 'Duration', 'Price Range', 'Status', 'Actions'].map(h => (
@@ -262,6 +263,7 @@ export default function RoutesPage() {
               })}
             </tbody>
           </table>
+</div>
         )}
       </div>
 

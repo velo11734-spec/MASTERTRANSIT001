@@ -376,7 +376,8 @@ export default function DisputesPage() {
             <div style={{ textAlign: 'center', padding: 60, color: '#94A3B8' }}><Scale size={40} style={{ opacity: 0.3 }} /><p>No disputes found</p></div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+              <div className="mt-table-wrap">
+<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
                 <thead>
                   <tr style={{ background: '#F8FAFC' }}>
                     {['Case Ref', 'Subject', 'Complainant', 'Priority', 'Status', 'Date', 'Actions'].map((h) => (
@@ -404,6 +405,7 @@ export default function DisputesPage() {
                   })}
                 </tbody>
               </table>
+</div>
             </div>
           )
         ) : (
@@ -412,7 +414,8 @@ export default function DisputesPage() {
             <div style={{ textAlign: 'center', padding: 60, color: '#94A3B8' }}><CreditCard size={40} style={{ opacity: 0.3 }} /><p>No refund requests found</p></div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+              <div className="mt-table-wrap">
+<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
                 <thead>
                   <tr style={{ background: '#F8FAFC' }}>
                     {['Passenger', 'Amount', 'Reason', 'Status', 'Date', 'Actions'].map((h) => (
@@ -438,6 +441,7 @@ export default function DisputesPage() {
                   })}
                 </tbody>
               </table>
+</div>
             </div>
           )
         )}

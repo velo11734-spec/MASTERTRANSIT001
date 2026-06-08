@@ -180,7 +180,8 @@ export default function AdminCompaniesPage() {
           ) : filteredCompanies.length === 0 ? (
             <div style={{ padding: 40, textAlign: 'center', color: '#64748B' }}>No companies found.</div>
           ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <div className="mt-table-wrap">
+<table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead>
                 <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
                   <th style={{ padding: '14px 20px', fontSize: 12, fontWeight: 600, color: '#64748B', textTransform: 'uppercase' }}>Company Info</th>
@@ -222,6 +223,7 @@ export default function AdminCompaniesPage() {
                 ))}
               </tbody>
             </table>
+</div>
           )}
         </div>
 
