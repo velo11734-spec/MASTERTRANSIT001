@@ -130,6 +130,32 @@ export default function RegisterPage() {
             </button>
           </form>
 
+          <div style={{ position: 'relative', margin: '20px 0', textAlign: 'center' }}>
+            <div style={{ height: 1, background: '#E2E8F0' }} />
+            <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', background: '#fff', padding: '0 12px', fontSize: 12, color: '#94A3B8' }}>or continue with</span>
+          </div>
+
+          <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+            <button 
+              type="button" 
+              onClick={() => supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/api/auth/callback` } })}
+              className="mt-btn-outline" 
+              style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8 }}
+            >
+              <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" style={{ width: 18, height: 18 }} />
+              Google
+            </button>
+            <button 
+              type="button" 
+              onClick={() => supabase.auth.signInWithOAuth({ provider: 'apple', options: { redirectTo: `${window.location.origin}/api/auth/callback` } })}
+              className="mt-btn-outline" 
+              style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8 }}
+            >
+              <img src="https://www.svgrepo.com/show/511330/apple-173.svg" alt="Apple" style={{ width: 18, height: 18 }} />
+              Apple
+            </button>
+          </div>
+
           <p style={{ textAlign: 'center', fontSize: 13, color: '#64748B', marginTop: 16 }}>
             Already have an account?{' '}
             <Link href="/en/login" style={{ color: '#16A34A', fontWeight: 600, textDecoration: 'none' }}>Sign In</Link>

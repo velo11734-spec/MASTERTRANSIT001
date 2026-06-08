@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { validateBody, VerifyPaymentSchema } from '@/lib/validations'
+import { PaymentIntentEngine } from '@/lib/payment-intent/engine'
 
 export async function POST(req: Request) {
   try {
@@ -53,7 +54,9 @@ export async function POST(req: Request) {
     const verifyData = await verifyResponse.json()
 
     if (verifyData.status && verifyData.data?.status === 'success') {
-      // 1. Update payment record
+      const intentPayload = PaymentIntentEngine.extractIntent(verifyData.data?.metadata)
+
+      // 1. Update general payment record
       await supabase
         .from('payments')
         .update({
@@ -63,12 +66,56 @@ export async function POST(req: Request) {
         })
         .eq('reference', reference)
 
-      // 2. Update booking to confirmed
-      if (booking_id) {
-        await supabase
-          .from('bookings')
-          .update({ status: 'confirmed', confirmed_at: new Date().toISOString() })
-          .eq('id', booking_id)
+      // 2. Route based on Payment Intent
+      if (intentPayload) {
+        if (intentPayload.intent === 'WALLET_TOP_UP') {
+          // Add to spendable balance
+          const amountInNaira = verifyData.data.amount / 100 // Paystack returns kobo
+          
+          const { data: wallet } = await supabase
+            .from('passenger_wallets')
+            .select('id, spendable_balance')
+            .eq('user_id', intentPayload.user_id)
+            .single()
+
+          if (wallet) {
+            const newBalance = (wallet.spendable_balance || 0) + amountInNaira
+            await supabase
+              .from('passenger_wallets')
+              .update({ spendable_balance: newBalance })
+              .eq('id', wallet.id)
+
+            // Create wallet transaction
+            await supabase.from('passenger_wallet_transactions').insert({
+              wallet_id: wallet.id,
+              transaction_intent: 'WALLET_TOP_UP',
+              payment_method: 'paystack',
+              amount: amountInNaira,
+              balance_after: newBalance,
+              status: 'completed',
+              description: 'Wallet funding via Paystack',
+              linked_entity_id: reference,
+              linked_entity_type: 'payment'
+            })
+          }
+        }
+        else if (intentPayload.intent === 'TRIP_PAYMENT') {
+           // Existing booking confirmation logic
+           if (intentPayload.entity_id || booking_id) {
+             await supabase
+               .from('bookings')
+               .update({ status: 'confirmed', confirmed_at: new Date().toISOString() })
+               .eq('id', intentPayload.entity_id || booking_id)
+           }
+        }
+      } else {
+        // Fallback for payments without intent metadata
+        if (booking_id) {
+          await supabase
+            .from('bookings')
+            .update({ status: 'confirmed', confirmed_at: new Date().toISOString() })
+            .eq('id', booking_id)
+        }
       }
 
       // 3. Audit log
@@ -78,7 +125,7 @@ export async function POST(req: Request) {
         action: 'PAYMENT_VERIFIED',
         entity_type: 'payment',
         entity_id: reference,
-        new_value: { booking_id, amount: verifyData.data?.amount, status: 'successful' },
+        new_value: { booking_id, intent: intentPayload?.intent, amount: verifyData.data?.amount, status: 'successful' },
       }).then(({ error: logErr }) => { if (logErr) console.error('Audit log error:', logErr) }) // non-blocking
 
       return NextResponse.json({ success: true, data: verifyData.data })

@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase/client';
 import {
   Settings, Save, RefreshCw, Edit2, X, Check,
   DollarSign, Clock, Ticket, Globe, Phone, Mail,
-  Zap, Tag, Megaphone, ShoppingBag, Car, CreditCard,
+  Zap, Tag, Megaphone, ShoppingBag, Car, CreditCard, Wallet,
 } from 'lucide-react';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -33,6 +33,7 @@ const CATEGORY_ICON: Record<string, React.ElementType> = {
   marketplace:  ShoppingBag,
   subscription: CreditCard,
   advertising:  Megaphone,
+  wallet:       Wallet,
 };
 
 const CATEGORY_COLOR: Record<string, string> = {
@@ -46,6 +47,7 @@ const CATEGORY_COLOR: Record<string, string> = {
   marketplace:  '#8B5CF6',
   subscription: '#D97706',
   advertising:  '#EC4899',
+  wallet:       '#16A34A',
 };
 
 const fmtDate = (d: string | null) =>

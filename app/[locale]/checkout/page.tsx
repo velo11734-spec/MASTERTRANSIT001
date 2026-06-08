@@ -3,9 +3,9 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ShoppingCart, Clock, CreditCard, AlertCircle, ArrowRight } from 'lucide-react'
+import { ShoppingCart, Clock, CreditCard, AlertCircle, ArrowRight, Wallet } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
-import { usePaystackPayment } from 'react-paystack'
+import { initializePaystackCheckout } from '@/lib/paystack/client'
 
 type CartItem = {
   id: string
@@ -26,6 +26,11 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(true)
   const [userEmail, setUserEmail] = useState('')
   const [userId, setUserId] = useState('')
+  
+  // Wallet state
+  const [walletBalance, setWalletBalance] = useState(0)
+  const [paymentMethod, setPaymentMethod] = useState<'paystack' | 'wallet'>('paystack')
+  const [processing, setProcessing] = useState(false)
 
   useEffect(() => {
     async function fetchCart() {
@@ -53,6 +58,18 @@ export default function CheckoutPage() {
       if (!error && data) {
         setCartItems(data as any)
       }
+      
+      // Fetch wallet balance
+      try {
+        const res = await fetch('/api/wallet/balance')
+        const wData = await res.json()
+        if (wData.success && wData.data) {
+          setWalletBalance(wData.data.spendableBalance || 0)
+        }
+      } catch (err) {
+        console.error('Failed to load wallet', err)
+      }
+
       setLoading(false)
     }
 
@@ -60,53 +77,142 @@ export default function CheckoutPage() {
   }, [router])
 
   const totalAmount = cartItems.reduce((sum, item) => sum + Number(item.amount), 0)
+  const canUseWallet = walletBalance >= totalAmount
 
-  // Paystack Configuration
-  const config = {
-    reference: (new Date()).getTime().toString(),
-    email: userEmail,
-    amount: totalAmount * 100, // Paystack amount is in kobo (multiply by 100)
-    publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
-  }
-
-  const initializePayment = usePaystackPayment(config)
-
-  const onSuccess = async (reference: any) => {
-    setLoading(true)
-    // 1. Move items from cart to bookings
-    const bookingsData = cartItems.map(item => ({
-      user_id: userId,
-      trip_id: item.trip_id,
-      seat_number: item.seat_number,
-      amount: item.amount,
-      total_amount: item.amount,
-      status: 'confirmed',
-      payment_method: 'paystack',
-      booking_reference: reference.reference
-    }))
-
-    const { error: insertError } = await supabase.from('bookings').insert(bookingsData)
+  const handlePaystackPayment = () => {
+    setProcessing(true)
     
-    if (!insertError) {
-      // 2. Delete cart items
-      await supabase.from('cart_reservations').delete().in('id', cartItems.map(i => i.id))
-      router.push('/en/e-tickets')
-    } else {
-      alert('Payment successful but booking failed to save. Please contact support with reference: ' + reference.reference)
-      setLoading(false)
+    // Generate an entity ID (using the first cart item's trip ID or a custom reference)
+    const entityId = cartItems.length > 0 ? cartItems[0].trip_id : 'checkout'
+    
+    // PaymentIntentEngine metadata format
+    const metadata = {
+      custom_fields: [
+        { display_name: 'Payment Intent', variable_name: 'payment_intent', value: 'TRIP_PAYMENT' },
+        { display_name: 'User ID', variable_name: 'user_id', value: userId },
+        { display_name: 'Entity ID', variable_name: 'entity_id', value: entityId },
+      ],
+      intent: 'TRIP_PAYMENT',
+      user_id: userId,
+      entity_id: entityId,
     }
+
+    initializePaystackCheckout({
+      email: userEmail,
+      amount: totalAmount * 100, // kobo
+      reference: `TRP-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      metadata,
+      onSuccess: async (response) => {
+        // 1. Move items from cart to bookings
+        const bookingsData = cartItems.map(item => ({
+          user_id: userId,
+          trip_id: item.trip_id,
+          seat_number: item.seat_number,
+          amount: item.amount,
+          total_amount: item.amount,
+          status: 'confirmed',
+          payment_method: 'paystack',
+          booking_reference: response.reference
+        }))
+
+        const { error: insertError } = await supabase.from('bookings').insert(bookingsData)
+        
+        if (!insertError) {
+          // 2. Delete cart items
+          await supabase.from('cart_reservations').delete().in('id', cartItems.map(i => i.id))
+          
+          // Verify on backend asynchronously
+          fetch('/api/payments/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reference: response.reference })
+          }).catch(console.error)
+          
+          router.push('/en/e-tickets')
+        } else {
+          alert('Payment successful but booking failed to save. Please contact support with reference: ' + response.reference)
+          setProcessing(false)
+        }
+      },
+      onClose: () => {
+        setProcessing(false)
+      }
+    })
   }
 
-  const onClose = () => {
-    console.log('Payment window closed')
+  const handleWalletPayment = async () => {
+    if (!canUseWallet) return
+    setProcessing(true)
+
+    try {
+      // 1. Deduct wallet balance (In a real app, use an API route to handle this atomically)
+      // Since this is MVP, we do it via client, but ideally should hit a /api/checkout endpoint.
+      const { data: wallet } = await supabase
+        .from('passenger_wallets')
+        .select('id, spendable_balance')
+        .eq('user_id', userId)
+        .single()
+
+      if (!wallet || wallet.spendable_balance < totalAmount) {
+        throw new Error('Insufficient wallet balance')
+      }
+
+      // 2. Update wallet
+      const newBalance = wallet.spendable_balance - totalAmount
+      await supabase
+        .from('passenger_wallets')
+        .update({ spendable_balance: newBalance })
+        .eq('id', wallet.id)
+      
+      const reference = `WAL-${Date.now()}-${Math.floor(Math.random() * 1000)}`
+
+      // 3. Log transaction
+      await supabase.from('passenger_wallet_transactions').insert({
+        wallet_id: wallet.id,
+        transaction_intent: 'WALLET_DEBIT',
+        payment_method: 'wallet',
+        status: 'completed',
+        amount: -totalAmount,
+        balance_after: newBalance,
+        description: 'Trip Booking Payment',
+        linked_entity_id: reference,
+        linked_entity_type: 'booking'
+      })
+
+      // 4. Move items to bookings
+      const bookingsData = cartItems.map(item => ({
+        user_id: userId,
+        trip_id: item.trip_id,
+        seat_number: item.seat_number,
+        amount: item.amount,
+        total_amount: item.amount,
+        status: 'confirmed',
+        payment_method: 'wallet',
+        booking_reference: reference
+      }))
+
+      const { error: insertError } = await supabase.from('bookings').insert(bookingsData)
+
+      if (!insertError) {
+        await supabase.from('cart_reservations').delete().in('id', cartItems.map(i => i.id))
+        router.push('/en/e-tickets')
+      } else {
+        throw new Error('Failed to create booking records')
+      }
+
+    } catch (err: any) {
+      console.error(err)
+      alert(err.message || 'Payment failed')
+      setProcessing(false)
+    }
   }
 
   const handlePayment = () => {
-    if (!config.publicKey) {
-      alert("Payment gateway is not configured properly.")
-      return
+    if (paymentMethod === 'paystack') {
+      handlePaystackPayment()
+    } else {
+      handleWalletPayment()
     }
-    initializePayment({ onSuccess, onClose })
   }
 
   // Timer Component
@@ -118,7 +224,6 @@ export default function CheckoutPage() {
         const newTime = Math.max(0, new Date(expiresAt).getTime() - new Date().getTime())
         setTimeLeft(newTime)
         if (newTime === 0) {
-          // Trigger refresh if an item expires
           window.location.reload()
         }
       }, 1000)
@@ -207,25 +312,84 @@ export default function CheckoutPage() {
                 <span style={{ color: '#64748B' }}>Subtotal ({cartItems.length} items)</span>
                 <span style={{ fontWeight: 600, color: '#0F172A' }}>₦{totalAmount}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 24 }}>
-                <span style={{ color: '#64748B' }}>Taxes & Fees</span>
-                <span style={{ fontWeight: 600, color: '#0F172A' }}>₦0.00</span>
-              </div>
               
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 32, paddingTop: 16, borderTop: '1px solid #F1F5F9' }}>
                 <span style={{ fontWeight: 700, color: '#0F172A', fontSize: 18 }}>Total Pay</span>
                 <span style={{ fontWeight: 800, color: '#16A34A', fontSize: 24 }}>₦{totalAmount}</span>
               </div>
 
+              {/* Payment Method Selector */}
+              <div style={{ marginBottom: 24 }}>
+                <h4 style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', marginBottom: 12 }}>Select Payment Method</h4>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {/* RoutePro Wallet Option */}
+                  <label style={{ 
+                    display: 'flex', alignItems: 'flex-start', gap: 12, padding: 16, 
+                    border: `1.5px solid ${paymentMethod === 'wallet' ? '#16A34A' : '#E2E8F0'}`, 
+                    borderRadius: 12, cursor: canUseWallet ? 'pointer' : 'not-allowed',
+                    background: paymentMethod === 'wallet' ? '#F0FDF4' : (canUseWallet ? 'white' : '#F8FAFC'),
+                    opacity: canUseWallet ? 1 : 0.6
+                  }}>
+                    <input 
+                      type="radio" 
+                      name="payment_method" 
+                      value="wallet"
+                      checked={paymentMethod === 'wallet'}
+                      onChange={() => canUseWallet && setPaymentMethod('wallet')}
+                      disabled={!canUseWallet}
+                      style={{ marginTop: 4 }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontWeight: 600, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Wallet size={16} /> RoutePro Wallet
+                      </p>
+                      <p style={{ fontSize: 13, color: '#64748B', marginTop: 4 }}>
+                        Balance: ₦{walletBalance.toLocaleString()}
+                      </p>
+                      {!canUseWallet && (
+                        <p style={{ fontSize: 12, color: '#DC2626', marginTop: 4 }}>Insufficient balance. Top up first.</p>
+                      )}
+                    </div>
+                  </label>
+
+                  {/* Paystack Option */}
+                  <label style={{ 
+                    display: 'flex', alignItems: 'flex-start', gap: 12, padding: 16, 
+                    border: `1.5px solid ${paymentMethod === 'paystack' ? '#16A34A' : '#E2E8F0'}`, 
+                    borderRadius: 12, cursor: 'pointer',
+                    background: paymentMethod === 'paystack' ? '#F0FDF4' : 'white'
+                  }}>
+                    <input 
+                      type="radio" 
+                      name="payment_method" 
+                      value="paystack"
+                      checked={paymentMethod === 'paystack'}
+                      onChange={() => setPaymentMethod('paystack')}
+                      style={{ marginTop: 4 }}
+                    />
+                    <div>
+                      <p style={{ fontWeight: 600, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <CreditCard size={16} /> Pay with Paystack
+                      </p>
+                      <p style={{ fontSize: 13, color: '#64748B', marginTop: 4 }}>
+                        Cards, Bank Transfers, USSD
+                      </p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
               <button 
                 onClick={handlePayment}
+                disabled={processing}
                 className="mt-btn-primary" 
                 style={{ width: '100%', padding: '16px', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}
               >
-                <CreditCard size={20} /> Pay with Paystack
+                {processing ? 'Processing...' : (paymentMethod === 'wallet' ? 'Pay from Wallet' : 'Pay with Paystack')}
               </button>
               
-              <p style={{ textAlign: 'center', fontSize: 12, color: '#94A3B8', marginTop: 16 }}>Secure payment processing by Paystack.</p>
+              <p style={{ textAlign: 'center', fontSize: 12, color: '#94A3B8', marginTop: 16 }}>Secure payment processing.</p>
             </div>
 
           </div>

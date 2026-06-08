@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { User, Mail, Phone, MapPin, Shield, Camera } from 'lucide-react'
+import { User, Mail, Phone, MapPin, Shield, Camera, Building2, CreditCard } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
 export default function ProfilePage() {
@@ -10,6 +10,9 @@ export default function ProfilePage() {
     email: '',
     phone: '',
     address: '',
+    bankName: '',
+    accountName: '',
+    accountNumber: ''
   })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -37,12 +40,16 @@ export default function ProfilePage() {
           .single()
 
         const meta = user.user_metadata || {}
+        const bankAccount = meta.bank_account || {}
         
         setProfile({
           fullName: dbProfile?.full_name || meta.full_name || '',
           email: user.email || '',
           phone: dbProfile?.phone || meta.phone || '',
           address: meta.address || '',
+          bankName: bankAccount.bankName || '',
+          accountName: bankAccount.accountName || '',
+          accountNumber: bankAccount.accountNumber || ''
         })
         setUserRole(dbProfile?.role || meta.role || 'passenger')
       } catch (err: any) {
@@ -70,7 +77,12 @@ export default function ProfilePage() {
         data: {
           full_name: profile.fullName,
           phone: profile.phone,
-          address: profile.address
+          address: profile.address,
+          bank_account: {
+            bankName: profile.bankName,
+            accountName: profile.accountName,
+            accountNumber: profile.accountNumber
+          }
         }
       })
       if (authErr) throw authErr
@@ -180,6 +192,35 @@ export default function ProfilePage() {
                 <div style={{ position: 'relative' }}>
                   <MapPin size={15} style={{ position: 'absolute', left: 12, top: '12px', color: '#94A3B8' }} />
                   <textarea value={profile.address} onChange={e => setProfile({...profile, address: e.target.value})} className="mt-input" style={{ paddingLeft: 36, minHeight: 80, paddingTop: 10 }} />
+                </div>
+              </div>
+
+              {/* Bank Account Details */}
+              <div style={{ gridColumn: '1 / -1', marginTop: 12 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0F172A', marginBottom: 20, paddingBottom: 12, borderBottom: '1px solid #F1F5F9' }}>Withdrawal Bank Account</h3>
+              </div>
+              
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label className="mt-label">Bank Name</label>
+                <div style={{ position: 'relative' }}>
+                  <Building2 size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
+                  <input type="text" value={profile.bankName} onChange={e => setProfile({...profile, bankName: e.target.value})} placeholder="e.g. Guaranty Trust Bank" className="mt-input" style={{ paddingLeft: 36 }} />
+                </div>
+              </div>
+
+              <div>
+                <label className="mt-label">Account Name</label>
+                <div style={{ position: 'relative' }}>
+                  <User size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
+                  <input type="text" value={profile.accountName} onChange={e => setProfile({...profile, accountName: e.target.value})} placeholder="e.g. John Doe" className="mt-input" style={{ paddingLeft: 36 }} />
+                </div>
+              </div>
+
+              <div>
+                <label className="mt-label">Account Number</label>
+                <div style={{ position: 'relative' }}>
+                  <CreditCard size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
+                  <input type="text" value={profile.accountNumber} onChange={e => setProfile({...profile, accountNumber: e.target.value})} placeholder="e.g. 0123456789" className="mt-input" style={{ paddingLeft: 36 }} />
                 </div>
               </div>
 

@@ -62,6 +62,7 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: 'Bookings', icon: Ticket, href: '/en/admin/bookings' },
       { label: 'Payments', icon: CreditCard, href: '/en/admin/payments' },
+      { label: 'Withdrawals', icon: Wallet, href: '/en/admin/finance/withdrawals' },
       { label: 'Payouts', icon: Wallet, href: '/en/admin/payouts' },
       { label: 'Subscriptions', icon: CreditCard, href: '/en/admin/subscriptions' },
       { label: 'Disputes', icon: Scale, href: '/en/admin/disputes' },

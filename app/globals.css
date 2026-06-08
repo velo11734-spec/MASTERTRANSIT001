@@ -450,3 +450,218 @@ h1, h2, h3, h4, h5, h6 {
   to { opacity: 1; transform: scale(1); }
 }
 
+/* ============================================================
+   PHASE 8 — RESPONSIVE SYSTEM ENHANCEMENTS
+   ============================================================ */
+
+/* ── Fluid Typography Scale ──────────────────────────────── */
+:root {
+  --fluid-xs:   clamp(0.69rem,  0.6vw + 0.55rem, 0.75rem);
+  --fluid-sm:   clamp(0.8rem,   0.8vw + 0.65rem, 0.875rem);
+  --fluid-base: clamp(0.875rem, 1vw  + 0.7rem,   1rem);
+  --fluid-lg:   clamp(1rem,     1.5vw + 0.7rem,  1.125rem);
+  --fluid-xl:   clamp(1.125rem, 2vw  + 0.7rem,  1.25rem);
+  --fluid-2xl:  clamp(1.25rem,  3vw  + 0.5rem,  1.5rem);
+  --fluid-3xl:  clamp(1.5rem,   4vw  + 0.5rem,  2rem);
+  --fluid-4xl:  clamp(1.75rem,  5vw  + 0.5rem,  2.5rem);
+}
+
+/* ── Responsive Container ────────────────────────────────── */
+.mt-container {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: clamp(16px, 4vw, 48px);
+  max-width: 1440px;
+}
+
+.mt-container-narrow {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: clamp(16px, 4vw, 32px);
+  max-width: 800px;
+}
+
+/* ── Responsive Grid Utilities ───────────────────────────── */
+.mt-grid {
+  display: grid;
+  gap: clamp(12px, 2vw, 24px);
+}
+
+.mt-grid-1 { grid-template-columns: 1fr; }
+.mt-grid-2 { grid-template-columns: repeat(2, 1fr); }
+.mt-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.mt-grid-4 { grid-template-columns: repeat(4, 1fr); }
+.mt-grid-auto { grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); }
+
+/* Stack to single column on small screens */
+@media (max-width: 640px) {
+  .mt-grid-2,
+  .mt-grid-3,
+  .mt-grid-4 { grid-template-columns: 1fr; }
+}
+@media (min-width: 641px) and (max-width: 1023px) {
+  .mt-grid-3,
+  .mt-grid-4 { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── Stat Cards Row ──────────────────────────────────────── */
+.mt-stats-row {
+  display: grid;
+  gap: clamp(10px, 2vw, 20px);
+  grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr));
+}
+
+/* ── Section Spacing ─────────────────────────────────────── */
+.mt-section {
+  padding-block: clamp(32px, 6vw, 80px);
+}
+.mt-section-sm {
+  padding-block: clamp(20px, 3vw, 40px);
+}
+
+/* ── Content Stack (vertical rhythm) ────────────────────── */
+.mt-stack > * + * {
+  margin-top: clamp(12px, 2vw, 24px);
+}
+.mt-stack-sm > * + * {
+  margin-top: clamp(8px, 1.5vw, 16px);
+}
+
+/* ── Responsive Flex Utilities ───────────────────────────── */
+.mt-flex-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(8px, 1.5vw, 16px);
+}
+.mt-flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* ── Dashboard Page Layout ───────────────────────────────── */
+.mt-page {
+  padding: clamp(16px, 3vw, 32px);
+  max-width: 1200px;
+  margin-inline: auto;
+}
+.mt-page-wide {
+  padding: clamp(16px, 3vw, 32px);
+  max-width: 1400px;
+  margin-inline: auto;
+}
+
+/* ── Card Padding Responsive ─────────────────────────────── */
+.mt-card-body {
+  padding: clamp(16px, 2.5vw, 28px);
+}
+
+/* ── Table Responsive Wrapper ────────────────────────────── */
+.mt-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+}
+.mt-table-wrap table {
+  min-width: 600px;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* ── Hero / Splash responsive padding ───────────────────── */
+.mt-hero {
+  padding-block: clamp(48px, 8vw, 120px);
+  padding-inline: clamp(16px, 4vw, 80px);
+}
+
+/* ── Improved Breakpoints ────────────────────────────────── */
+/* xs: 0-479 */
+/* sm: 480-767 */
+/* md: 768-1023 */
+/* lg: 1024-1279 */
+/* xl: 1280+ */
+
+@media (max-width: 479px) {
+  .hide-xs { display: none !important; }
+  .mt-navbar { padding: 0 12px; gap: 12px; }
+  .mt-hero { text-align: center; }
+}
+
+@media (min-width: 480px) and (max-width: 767px) {
+  .hide-sm { display: none !important; }
+}
+
+@media (max-width: 767px) {
+  /* Ensure modals are full-screen friendly on mobile */
+  .modal-sheet {
+    position: fixed !important;
+    bottom: 0 !important;
+    top: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    border-radius: 20px 20px 0 0 !important;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  /* Collapse large padding on mobile */
+  .mt-page,
+  .mt-page-wide { padding: 16px; }
+  .mt-card-body  { padding: 16px; }
+}
+
+@media (max-width: 1023px) {
+  /* Dashboard shifts to full-width when sidebar collapses */
+  .mt-main { margin-left: 0 !important; }
+  /* Improve bottom nav spacing */
+  body { padding-bottom: 72px; }
+  .mt-bottom-nav { height: 72px; }
+}
+
+@media (min-width: 1024px) {
+  /* Restore sidebar margin at desktop */
+  .mt-main { margin-left: var(--mt-sidebar-w); }
+  /* Hide mobile-only elements */
+  .mt-bottom-nav { display: none !important; }
+}
+
+/* ── Responsive Typography ───────────────────────────────── */
+.text-fluid-xs   { font-size: var(--fluid-xs); }
+.text-fluid-sm   { font-size: var(--fluid-sm); }
+.text-fluid-base { font-size: var(--fluid-base); }
+.text-fluid-lg   { font-size: var(--fluid-lg); }
+.text-fluid-xl   { font-size: var(--fluid-xl); }
+.text-fluid-2xl  { font-size: var(--fluid-2xl); }
+.text-fluid-3xl  { font-size: var(--fluid-3xl); }
+.text-fluid-4xl  { font-size: var(--fluid-4xl); }
+
+/* ── Wallet Dashboard Responsive ─────────────────────────── */
+.wallet-balance-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  gap: clamp(12px, 2vw, 20px);
+}
+
+/* ── Touch-friendly tap targets ──────────────────────────── */
+@media (max-width: 1023px) {
+  .mt-btn-primary,
+  .mt-btn-outline {
+    min-height: 44px;
+    padding: 10px 20px;
+  }
+  .mt-sidebar-item {
+    min-height: 44px;
+  }
+}
+
+/* ── Safe-area insets for notched phones ─────────────────── */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .mt-bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom);
+    height: calc(72px + env(safe-area-inset-bottom));
+  }
+  body { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+}
+
