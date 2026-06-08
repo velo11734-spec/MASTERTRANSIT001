@@ -140,11 +140,13 @@ export default function SearchPage() {
   })
 
   return (
-    <div style={{ background: '#F8FAFC', minHeight: '100vh' }}>
+    <div className="page-enter" style={{ background: '#F8FAFC', minHeight: '100vh' }}>
+
 
       {/* Search Header */}
-      <div style={{ background: '#FFFFFF', borderBottom: '1px solid #E2E8F0', padding: '12px 20px', position: 'sticky', top: 64, zIndex: 30 }}>
-        <div style={{ maxWidth: 800, margin: '0 auto' }}>
+      <div style={{ background: '#FFFFFF', borderBottom: '1px solid #E2E8F0', padding: '12px clamp(14px, 3vw, 24px)', position: 'sticky', top: 64, zIndex: 30 }}>
+        <div style={{ maxWidth: 860, margin: '0 auto' }}>
+
           {/* Back + route title */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
             <button onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: '#64748B', fontSize: 14 }}>
@@ -191,7 +193,8 @@ export default function SearchPage() {
       </div>
 
       {/* Results */}
-      <div style={{ maxWidth: 800, margin: '0 auto', padding: '16px 20px' }}>
+      <div style={{ maxWidth: 860, margin: '0 auto', padding: 'clamp(12px, 3vw, 20px) clamp(14px, 3vw, 24px)' }}>
+
         {/* Results count + sort */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <p style={{ fontSize: 13, color: '#64748B', fontWeight: 500 }}>

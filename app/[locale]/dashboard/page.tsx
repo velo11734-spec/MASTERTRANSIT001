@@ -102,8 +102,9 @@ export default function PassengerDashboard() {
   }, [])
 
   return (
-    <div style={{ background: '#F8FAFC', minHeight: '100vh', padding: '24px 20px' }}>
-      <div style={{ maxWidth: 780, margin: '0 auto' }}>
+    <div className="page-enter" style={{ background: '#F8FAFC', minHeight: '100vh', paddingBottom: 16 }}>
+      <div style={{ maxWidth: 860, margin: '0 auto', padding: 'clamp(16px, 3vw, 28px)' }}>
+
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
@@ -123,8 +124,9 @@ export default function PassengerDashboard() {
           </div>
         </div>
 
-        {/* Stats Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>
+        {/* Stats Grid — responsive: 4 cols desktop → 2 cols tablet → 1 col mobile */}
+        <div className="mt-stats-row stagger-children" style={{ marginBottom: 24 }}>
+
           {stats.map(({ label, value, icon: Icon, color, bg }) => (
             <div key={label} className="mt-card" style={{ padding: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
               <div style={{ width: 40, height: 40, background: bg, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -139,9 +141,10 @@ export default function PassengerDashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="mt-card" style={{ padding: 20, marginBottom: 24 }}>
+        <div className="mt-card" style={{ padding: 'clamp(14px, 2.5vw, 20px)', marginBottom: 24 }}>
           <h2 style={{ fontSize: 15, fontWeight: 700, color: '#0F172A', marginBottom: 16 }}>Quick Actions</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+          <div className="mt-grid mt-grid-2" style={{ gap: 10 }}>
+
             <Link href="/en/search" className="mt-btn-primary" style={{ justifyContent: 'center', padding: '12px' }}>
               <Bus size={16} /> Book a Trip
             </Link>

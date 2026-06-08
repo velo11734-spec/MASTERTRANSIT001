@@ -23,8 +23,19 @@
   --mt-sidebar-w:   240px;
   --mt-right-w:     300px;
   --mt-top-h:       64px;
+
+  /* Fluid Typography */
+  --fluid-xs:   clamp(0.69rem,  0.6vw + 0.55rem, 0.75rem);
+  --fluid-sm:   clamp(0.8rem,   0.8vw + 0.65rem, 0.875rem);
+  --fluid-base: clamp(0.875rem, 1vw  + 0.7rem,   1rem);
+  --fluid-lg:   clamp(1rem,     1.5vw + 0.7rem,  1.125rem);
+  --fluid-xl:   clamp(1.125rem, 2vw  + 0.7rem,   1.25rem);
+  --fluid-2xl:  clamp(1.25rem,  3vw  + 0.5rem,   1.5rem);
+  --fluid-3xl:  clamp(1.5rem,   4vw  + 0.5rem,   2rem);
+  --fluid-4xl:  clamp(1.75rem,  5vw  + 0.5rem,   2.5rem);
 }
 
+/* ── Reset ───────────────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -33,6 +44,8 @@
 
 html {
   scroll-behavior: smooth;
+  /* Prevent content width blow-out on any screen */
+  overflow-x: hidden;
 }
 
 body {
@@ -44,6 +57,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  /* Prevent horizontal scroll on all viewports */
+  max-width: 100vw;
 }
 
 /* ── Typography ─────────────────────────────────────────── */
@@ -52,6 +67,16 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 700;
   line-height: 1.2;
 }
+
+/* Fluid type utilities */
+.text-fluid-xs   { font-size: var(--fluid-xs); }
+.text-fluid-sm   { font-size: var(--fluid-sm); }
+.text-fluid-base { font-size: var(--fluid-base); }
+.text-fluid-lg   { font-size: var(--fluid-lg); }
+.text-fluid-xl   { font-size: var(--fluid-xl); }
+.text-fluid-2xl  { font-size: var(--fluid-2xl); }
+.text-fluid-3xl  { font-size: var(--fluid-3xl); }
+.text-fluid-4xl  { font-size: var(--fluid-4xl); }
 
 /* ── Scrollbar ───────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -76,6 +101,13 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 16px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.06);
 }
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
 
 /* ── Buttons ─────────────────────────────────────────────── */
 .mt-btn-primary {
@@ -91,15 +123,21 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 8px;
   border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
   text-decoration: none;
   white-space: nowrap;
+  min-height: 44px;
+  /* Full width on small mobile */
 }
 .mt-btn-primary:hover {
   background: var(--mt-green-dark);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(22,163,74,0.3);
 }
+.mt-btn-primary:active, .btn-press:active {
+  transform: scale(0.97);
+}
+
 .mt-btn-outline {
   display: inline-flex;
   align-items: center;
@@ -115,10 +153,18 @@ h1, h2, h3, h4, h5, h6 {
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: none;
+  min-height: 44px;
 }
 .mt-btn-outline:hover {
   border-color: var(--mt-green);
   color: var(--mt-green);
+}
+
+/* Mobile: full-width action buttons */
+@media (max-width: 479px) {
+  .mt-btn-full-mobile {
+    width: 100%;
+  }
 }
 
 /* ── Badges ──────────────────────────────────────────────── */
@@ -153,6 +199,12 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 4px;
 }
 
+/* ── Status Chips ────────────────────────────────────────── */
+.status-confirmed { background: #DCFCE7; color: #15803D; }
+.status-pending   { background: #FEF9C3; color: #854D0E; }
+.status-cancelled { background: #FEE2E2; color: #DC2626; }
+.status-completed { background: #E0F2FE; color: #0369A1; }
+
 /* ── Form Inputs ─────────────────────────────────────────── */
 .mt-input {
   width: 100%;
@@ -165,6 +217,8 @@ h1, h2, h3, h4, h5, h6 {
   outline: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   font-family: 'Inter', sans-serif;
+  /* Always readable on mobile */
+  min-height: 44px;
 }
 .mt-input:focus {
   border-color: var(--mt-green);
@@ -192,6 +246,9 @@ h1, h2, h3, h4, h5, h6 {
   border-right: 1px solid var(--mt-border);
   overflow-y: auto;
   z-index: 40;
+  /* Smooth sidebar transitions */
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .mt-sidebar-item {
   display: flex;
@@ -206,6 +263,7 @@ h1, h2, h3, h4, h5, h6 {
   cursor: pointer;
   transition: all 0.15s ease;
   text-decoration: none;
+  min-height: 44px;
 }
 .mt-sidebar-item:hover {
   background: #F1F5F9;
@@ -248,12 +306,14 @@ h1, h2, h3, h4, h5, h6 {
   z-index: 40;
 }
 
-/* ── Main Content area (with sidebar + right panel offsets) ─ */
+/* ── Main Content area ───────────────────────────────────── */
 .mt-main {
   margin-left: var(--mt-sidebar-w);
   margin-right: var(--mt-right-w);
   padding-top: var(--mt-top-h);
   min-height: 100vh;
+  /* Smooth layout shift when sidebar toggles */
+  transition: margin 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ── Route Card ──────────────────────────────────────────── */
@@ -272,9 +332,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 .route-card-overlay {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  bottom: 0; left: 0; right: 0;
   background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
   padding: 8px;
   display: flex;
@@ -303,66 +361,42 @@ h1, h2, h3, h4, h5, h6 {
   cursor: pointer;
   transition: all 0.15s ease;
   border: 1.5px solid transparent;
+  /* Touch-friendly */
+  min-width: 36px;
+  min-height: 36px;
 }
-.seat-available { background: #DCFCE7; color: #15803D; border-color: #86EFAC; }
+/* Mobile: slightly larger touch targets */
+@media (max-width: 479px) {
+  .seat { width: 40px; height: 40px; min-width: 40px; min-height: 40px; }
+}
+.seat-available  { background: #DCFCE7; color: #15803D; border-color: #86EFAC; }
 .seat-available:hover { background: #16A34A; color: white; }
-.seat-selected { background: #16A34A; color: white; border-color: #15803D; }
-.seat-booked { background: #FEE2E2; color: #DC2626; border-color: #FCA5A5; cursor: not-allowed; }
-.seat-reserved { background: #FEF3C7; color: #D97706; border-color: #FCD34D; cursor: not-allowed; }
+.seat-selected   { background: #16A34A; color: white; border-color: #15803D; }
+.seat-booked     { background: #FEE2E2; color: #DC2626; border-color: #FCA5A5; cursor: not-allowed; }
+.seat-reserved   { background: #FEF3C7; color: #D97706; border-color: #FCD34D; cursor: not-allowed; }
 
 /* ── Star Rating ─────────────────────────────────────────── */
 .star { color: #F59E0B; }
-
-/* ── Status Chips ────────────────────────────────────────── */
-.status-confirmed { background: #DCFCE7; color: #15803D; }
-.status-pending { background: #FEF9C3; color: #854D0E; }
-.status-cancelled { background: #FEE2E2; color: #DC2626; }
-.status-completed { background: #E0F2FE; color: #0369A1; }
-
-/* ── Animations ──────────────────────────────────────────── */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.fade-in { animation: fadeIn 0.3s ease forwards; }
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-.skeleton {
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s ease infinite;
-  border-radius: 6px;
-}
 
 /* ── Mobile Bottom Nav ───────────────────────────────────── */
 .mt-bottom-nav {
   display: none;
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  bottom: 0; left: 0; right: 0;
   height: 64px;
   background: #FFFFFF;
   border-top: 1px solid var(--mt-border);
   z-index: 50;
   padding: 0 8px;
+  /* Safe area for notched phones */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* ── Responsive ──────────────────────────────────────────── */
-@media (max-width: 1280px) {
-  :root { --mt-right-w: 0px; }
-  .mt-right-panel { display: none; }
-  .mt-main { margin-right: 0; }
-}
-@media (max-width: 1024px) {
-  :root { --mt-sidebar-w: 0px; }
-  .mt-sidebar { display: none; }
-  .mt-main { margin-left: 0; }
-  .mt-bottom-nav { display: flex; align-items: center; justify-content: space-around; }
-  body { padding-bottom: 64px; }
+/* ── Divider ─────────────────────────────────────────────── */
+.mt-divider {
+  height: 1px;
+  background: var(--mt-border);
+  margin: 12px 0;
 }
 
 /* ── Download App Card ───────────────────────────────────── */
@@ -383,179 +417,15 @@ h1, h2, h3, h4, h5, h6 {
   flex: 1;
 }
 .how-step-icon {
-  width: 48px;
-  height: 48px;
+  width: 48px; height: 48px;
   border-radius: 12px;
   background: var(--mt-green-light);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   color: var(--mt-green);
 }
 .how-step-arrow {
   color: #CBD5E1;
   margin-top: -20px;
-}
-
-/* ── Divider ─────────────────────────────────────────────── */
-.mt-divider {
-  height: 1px;
-  background: var(--mt-border);
-  margin: 12px 0;
-}
-
-/* Print / ticket styles */
-@media print {
-  .no-print { display: none !important; }
-  .mt-ticket { box-shadow: none !important; }
-}
-
-/* ── RoutePro Micro-Animations ───────────────────────────── */
-.fade-in {
-  animation: fadeIn 0.4s ease both;
-}
-
-.stagger-children > * {
-  animation: fadeIn 0.4s ease both;
-}
-.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
-.stagger-children > *:nth-child(2) { animation-delay: 50ms; }
-.stagger-children > *:nth-child(3) { animation-delay: 100ms; }
-.stagger-children > *:nth-child(4) { animation-delay: 150ms; }
-.stagger-children > *:nth-child(5) { animation-delay: 200ms; }
-.stagger-children > *:nth-child(6) { animation-delay: 250ms; }
-.stagger-children > *:nth-child(7) { animation-delay: 300ms; }
-.stagger-children > *:nth-child(8) { animation-delay: 350ms; }
-.stagger-children > *:nth-child(9) { animation-delay: 400ms; }
-.stagger-children > *:nth-child(10) { animation-delay: 450ms; }
-
-.card-hover {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.card-hover:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-}
-
-.btn-press:active {
-  transform: scale(0.97);
-}
-
-.modal-in {
-  animation: modalIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
-
-@keyframes modalIn {
-  from { opacity: 0; transform: scale(0.94); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-/* ============================================================
-   PHASE 8 — RESPONSIVE SYSTEM ENHANCEMENTS
-   ============================================================ */
-
-/* ── Fluid Typography Scale ──────────────────────────────── */
-:root {
-  --fluid-xs:   clamp(0.69rem,  0.6vw + 0.55rem, 0.75rem);
-  --fluid-sm:   clamp(0.8rem,   0.8vw + 0.65rem, 0.875rem);
-  --fluid-base: clamp(0.875rem, 1vw  + 0.7rem,   1rem);
-  --fluid-lg:   clamp(1rem,     1.5vw + 0.7rem,  1.125rem);
-  --fluid-xl:   clamp(1.125rem, 2vw  + 0.7rem,  1.25rem);
-  --fluid-2xl:  clamp(1.25rem,  3vw  + 0.5rem,  1.5rem);
-  --fluid-3xl:  clamp(1.5rem,   4vw  + 0.5rem,  2rem);
-  --fluid-4xl:  clamp(1.75rem,  5vw  + 0.5rem,  2.5rem);
-}
-
-/* ── Responsive Container ────────────────────────────────── */
-.mt-container {
-  width: 100%;
-  margin-inline: auto;
-  padding-inline: clamp(16px, 4vw, 48px);
-  max-width: 1440px;
-}
-
-.mt-container-narrow {
-  width: 100%;
-  margin-inline: auto;
-  padding-inline: clamp(16px, 4vw, 32px);
-  max-width: 800px;
-}
-
-/* ── Responsive Grid Utilities ───────────────────────────── */
-.mt-grid {
-  display: grid;
-  gap: clamp(12px, 2vw, 24px);
-}
-
-.mt-grid-1 { grid-template-columns: 1fr; }
-.mt-grid-2 { grid-template-columns: repeat(2, 1fr); }
-.mt-grid-3 { grid-template-columns: repeat(3, 1fr); }
-.mt-grid-4 { grid-template-columns: repeat(4, 1fr); }
-.mt-grid-auto { grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); }
-
-/* Stack to single column on small screens */
-@media (max-width: 640px) {
-  .mt-grid-2,
-  .mt-grid-3,
-  .mt-grid-4 { grid-template-columns: 1fr; }
-}
-@media (min-width: 641px) and (max-width: 1023px) {
-  .mt-grid-3,
-  .mt-grid-4 { grid-template-columns: repeat(2, 1fr); }
-}
-
-/* ── Stat Cards Row ──────────────────────────────────────── */
-.mt-stats-row {
-  display: grid;
-  gap: clamp(10px, 2vw, 20px);
-  grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr));
-}
-
-/* ── Section Spacing ─────────────────────────────────────── */
-.mt-section {
-  padding-block: clamp(32px, 6vw, 80px);
-}
-.mt-section-sm {
-  padding-block: clamp(20px, 3vw, 40px);
-}
-
-/* ── Content Stack (vertical rhythm) ────────────────────── */
-.mt-stack > * + * {
-  margin-top: clamp(12px, 2vw, 24px);
-}
-.mt-stack-sm > * + * {
-  margin-top: clamp(8px, 1.5vw, 16px);
-}
-
-/* ── Responsive Flex Utilities ───────────────────────────── */
-.mt-flex-wrap {
-  display: flex;
-  flex-wrap: wrap;
-  gap: clamp(8px, 1.5vw, 16px);
-}
-.mt-flex-between {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-/* ── Dashboard Page Layout ───────────────────────────────── */
-.mt-page {
-  padding: clamp(16px, 3vw, 32px);
-  max-width: 1200px;
-  margin-inline: auto;
-}
-.mt-page-wide {
-  padding: clamp(16px, 3vw, 32px);
-  max-width: 1400px;
-  margin-inline: auto;
-}
-
-/* ── Card Padding Responsive ─────────────────────────────── */
-.mt-card-body {
-  padding: clamp(16px, 2.5vw, 28px);
 }
 
 /* ── Table Responsive Wrapper ────────────────────────────── */
@@ -571,97 +441,230 @@ h1, h2, h3, h4, h5, h6 {
   border-collapse: collapse;
 }
 
-/* ── Hero / Splash responsive padding ───────────────────── */
+/* ── Animations ──────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fadeIn 0.35s ease both; }
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in-up { animation: fadeInUp 0.4s ease both; }
+
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.fade-in-scale { animation: fadeInScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+/* Stagger children */
+.stagger-children > * {
+  animation: fadeIn 0.4s ease both;
+}
+.stagger-children > *:nth-child(1)  { animation-delay:   0ms; }
+.stagger-children > *:nth-child(2)  { animation-delay:  50ms; }
+.stagger-children > *:nth-child(3)  { animation-delay: 100ms; }
+.stagger-children > *:nth-child(4)  { animation-delay: 150ms; }
+.stagger-children > *:nth-child(5)  { animation-delay: 200ms; }
+.stagger-children > *:nth-child(6)  { animation-delay: 250ms; }
+.stagger-children > *:nth-child(7)  { animation-delay: 300ms; }
+.stagger-children > *:nth-child(8)  { animation-delay: 350ms; }
+.stagger-children > *:nth-child(9)  { animation-delay: 400ms; }
+.stagger-children > *:nth-child(10) { animation-delay: 450ms; }
+
+/* Loading Skeleton */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: 6px;
+}
+
+/* Modal animation */
+.modal-in {
+  animation: modalIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Page transition wrapper — apply to every page's root div */
+.page-enter {
+  animation: fadeInUp 0.3s ease both;
+}
+
+/* ── Layout Containers ───────────────────────────────────── */
+.mt-container {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: clamp(16px, 4vw, 48px);
+  max-width: 1440px;
+}
+.mt-container-narrow {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: clamp(16px, 4vw, 32px);
+  max-width: 800px;
+}
+.mt-page {
+  padding: clamp(16px, 3vw, 32px);
+  max-width: 1200px;
+  margin-inline: auto;
+}
+.mt-page-wide {
+  padding: clamp(16px, 3vw, 32px);
+  max-width: 1400px;
+  margin-inline: auto;
+}
+.mt-card-body {
+  padding: clamp(16px, 2.5vw, 28px);
+}
 .mt-hero {
   padding-block: clamp(48px, 8vw, 120px);
   padding-inline: clamp(16px, 4vw, 80px);
 }
+.mt-section     { padding-block: clamp(32px, 6vw, 80px); }
+.mt-section-sm  { padding-block: clamp(20px, 3vw, 40px); }
 
-/* ── Improved Breakpoints ────────────────────────────────── */
-/* xs: 0-479 */
-/* sm: 480-767 */
-/* md: 768-1023 */
-/* lg: 1024-1279 */
-/* xl: 1280+ */
+/* ── Grid System ─────────────────────────────────────────── */
+.mt-grid   { display: grid; gap: clamp(12px, 2vw, 24px); }
+.mt-grid-1 { grid-template-columns: 1fr; }
+.mt-grid-2 { grid-template-columns: repeat(2, 1fr); }
+.mt-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.mt-grid-4 { grid-template-columns: repeat(4, 1fr); }
+.mt-grid-auto { grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); }
 
-@media (max-width: 479px) {
-  .hide-xs { display: none !important; }
-  .mt-navbar { padding: 0 12px; gap: 12px; }
-  .mt-hero { text-align: center; }
+/* Responsive stat cards */
+.mt-stats-row {
+  display: grid;
+  gap: clamp(10px, 2vw, 20px);
+  grid-template-columns: repeat(auto-fill, minmax(min(180px, 100%), 1fr));
 }
 
-@media (min-width: 480px) and (max-width: 767px) {
-  .hide-sm { display: none !important; }
+/* Responsive flex */
+.mt-flex-wrap   { display: flex; flex-wrap: wrap; gap: clamp(8px, 1.5vw, 16px); }
+.mt-flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
 }
+.mt-stack    > * + * { margin-top: clamp(12px, 2vw, 24px); }
+.mt-stack-sm > * + * { margin-top: clamp(8px, 1.5vw, 16px); }
 
-@media (max-width: 767px) {
-  /* Ensure modals are full-screen friendly on mobile */
-  .modal-sheet {
-    position: fixed !important;
-    bottom: 0 !important;
-    top: auto !important;
-    left: 0 !important;
-    right: 0 !important;
-    border-radius: 20px 20px 0 0 !important;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-  /* Collapse large padding on mobile */
-  .mt-page,
-  .mt-page-wide { padding: 16px; }
-  .mt-card-body  { padding: 16px; }
-}
-
-@media (max-width: 1023px) {
-  /* Dashboard shifts to full-width when sidebar collapses */
-  .mt-main { margin-left: 0 !important; }
-  /* Improve bottom nav spacing */
-  body { padding-bottom: 72px; }
-  .mt-bottom-nav { height: 72px; }
-}
-
-@media (min-width: 1024px) {
-  /* Restore sidebar margin at desktop */
-  .mt-main { margin-left: var(--mt-sidebar-w); }
-  /* Hide mobile-only elements */
-  .mt-bottom-nav { display: none !important; }
-}
-
-/* ── Responsive Typography ───────────────────────────────── */
-.text-fluid-xs   { font-size: var(--fluid-xs); }
-.text-fluid-sm   { font-size: var(--fluid-sm); }
-.text-fluid-base { font-size: var(--fluid-base); }
-.text-fluid-lg   { font-size: var(--fluid-lg); }
-.text-fluid-xl   { font-size: var(--fluid-xl); }
-.text-fluid-2xl  { font-size: var(--fluid-2xl); }
-.text-fluid-3xl  { font-size: var(--fluid-3xl); }
-.text-fluid-4xl  { font-size: var(--fluid-4xl); }
-
-/* ── Wallet Dashboard Responsive ─────────────────────────── */
+/* Wallet */
 .wallet-balance-row {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   gap: clamp(12px, 2vw, 20px);
 }
 
-/* ── Touch-friendly tap targets ──────────────────────────── */
+/* ============================================================
+   BREAKPOINTS & RESPONSIVE RULES
+   xs:  0–479px   (small phones)
+   sm:  480–767px (large phones)
+   md:  768–1023px (tablets)
+   lg:  1024–1279px (laptops)
+   xl:  1280–1535px (desktops)
+   2xl: 1536px+   (ultrawide)
+   ============================================================ */
+
+/* ── Ultrawide / TV (1920px+) ─────────────────────────────── */
+@media (min-width: 1920px) {
+  :root { --mt-right-w: 360px; }
+  .mt-container { max-width: 1800px; }
+  .mt-page      { max-width: 1600px; }
+}
+
+/* ── Desktop (1280–1919px) ───────────────────────────────── */
+@media (min-width: 1280px) {
+  /* Full 3-panel layout: navbar + sidebar + content + right panel */
+  .mt-main { margin-left: var(--mt-sidebar-w); margin-right: var(--mt-right-w); }
+}
+
+/* ── Laptop (1024–1279px): drop right panel ──────────────── */
+@media (max-width: 1279px) {
+  :root { --mt-right-w: 0px; }
+  .mt-right-panel { display: none; }
+  .mt-main { margin-right: 0; }
+}
+
+/* ── Tablet (768–1023px): sidebar becomes drawer ─────────── */
 @media (max-width: 1023px) {
-  .mt-btn-primary,
-  .mt-btn-outline {
-    min-height: 44px;
-    padding: 10px 20px;
+  :root { --mt-sidebar-w: 0px; }
+  .mt-sidebar { transform: translateX(-100%); }
+  .mt-sidebar.open { transform: translateX(0); box-shadow: 4px 0 24px rgba(0,0,0,0.12); }
+  .mt-main { margin-left: 0; }
+  .mt-bottom-nav { display: flex; align-items: center; justify-content: space-around; }
+  body { padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+  .mt-bottom-nav { height: calc(64px + env(safe-area-inset-bottom, 0px)); }
+
+  /* Tablet multi-column pages */
+  .mt-grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .mt-grid-3 { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── Mobile (< 768px) ────────────────────────────────────── */
+@media (max-width: 767px) {
+  /* Collapse padding */
+  .mt-page, .mt-page-wide { padding: 14px 14px 80px; }
+  .mt-card-body { padding: 14px; }
+  .mt-navbar { padding: 0 14px; gap: 14px; }
+
+  /* Full-width grid collapse */
+  .mt-grid-2,
+  .mt-grid-3,
+  .mt-grid-4 { grid-template-columns: 1fr; }
+
+  /* Bottom sheet modals */
+  .modal-sheet {
+    position: fixed !important;
+    bottom: 0 !important; top: auto !important;
+    left: 0 !important; right: 0 !important;
+    border-radius: 20px 20px 0 0 !important;
+    max-height: 92vh;
+    overflow-y: auto;
   }
-  .mt-sidebar-item {
-    min-height: 44px;
+
+  /* Hero text centered on mobile */
+  .mt-hero { text-align: center; padding-inline: 16px; }
+
+  /* Ensure images fill and don't overflow */
+  img { max-width: 100%; height: auto; }
+}
+
+/* ── Small Mobile (< 480px) ──────────────────────────────── */
+@media (max-width: 479px) {
+  .hide-xs { display: none !important; }
+  .mt-navbar { padding: 0 12px; gap: 10px; }
+
+  /* Seat map — allow horizontal scroll on tiny screens */
+  .seat-map-grid {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
   }
 }
 
-/* ── Safe-area insets for notched phones ─────────────────── */
-@supports (padding-bottom: env(safe-area-inset-bottom)) {
-  .mt-bottom-nav {
-    padding-bottom: env(safe-area-inset-bottom);
-    height: calc(72px + env(safe-area-inset-bottom));
-  }
-  body { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+/* ── Desktop only show sidebar ───────────────────────────── */
+@media (min-width: 1024px) {
+  .mt-sidebar { transform: translateX(0); }
+  .mt-bottom-nav { display: none !important; }
 }
 
+/* ── Print styles ────────────────────────────────────────── */
+@media print {
+  .no-print { display: none !important; }
+  .mt-ticket { box-shadow: none !important; }
+  .mt-bottom-nav, .mt-sidebar, .mt-navbar { display: none !important; }
+  .mt-main { margin: 0 !important; padding: 0 !important; }
+}

@@ -187,56 +187,101 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile menu — animated slide-in with backdrop */}
       {mobileOpen && (
-        <div className="absolute top-full left-0 right-0 bg-white border-b border-gray-200 shadow-lg lg:hidden" style={{ zIndex: 60 }}>
-          <nav className="flex flex-col p-4 gap-1">
-            {navLinks.map(link => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileOpen(false)}
-                className="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100"
-              >
-                {link.label}
-              </Link>
-            ))}
-            <Link
-              href="/en/companies/join"
-              onClick={() => setMobileOpen(false)}
-              className="px-4 py-2.5 rounded-lg text-sm font-semibold text-green-700 bg-green-50 hover:bg-green-100"
-            >
-              Become a Partner
-            </Link>
-            <hr className="my-2 border-gray-200" />
-            {sessionUser ? (
-              <>
-                <Link href={getDashboardLink()} onClick={() => setMobileOpen(false)} className="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100">
-                  {getDashboardLabel()}
-                </Link>
-                <Link href="/en/dashboard/profile" onClick={() => setMobileOpen(false)} className="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100">
-                  My Profile
-                </Link>
-                <button
-                  onClick={() => { setMobileOpen(false); handleLogout() }}
-                  className="px-4 py-2.5 rounded-lg text-sm font-medium text-red-600 text-left hover:bg-red-50"
-                  style={{ border: 'none', background: 'none', width: '100%', cursor: 'pointer' }}
+        <>
+          {/* Backdrop */}
+          <div
+            onClick={() => setMobileOpen(false)}
+            style={{
+              position: 'fixed', inset: 0, top: 'var(--mt-top-h)',
+              background: 'rgba(15,23,42,0.35)', zIndex: 55,
+              backdropFilter: 'blur(2px)',
+            }}
+          />
+          {/* Drawer */}
+          <div
+            className="fade-in-scale"
+            style={{
+              position: 'absolute', top: '100%', left: 0, right: 0,
+              background: '#FFFFFF',
+              borderBottom: '1px solid #E2E8F0',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+              zIndex: 60,
+              borderRadius: '0 0 16px 16px',
+              overflow: 'hidden',
+            }}
+          >
+            <nav className="flex flex-col p-4 gap-1">
+              {navLinks.map(link => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileOpen(false)}
+                  className="px-4 py-3 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                  style={{ minHeight: 48, display: 'flex', alignItems: 'center' }}
                 >
-                  Log Out
-                </button>
-              </>
-            ) : (
-              <>
-                <Link href="/en/login" onClick={() => setMobileOpen(false)} className="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100">
-                  Login
+                  {link.label}
                 </Link>
-                <Link href="/en/register" onClick={() => setMobileOpen(false)} className="px-4 py-2.5 rounded-lg text-sm font-medium text-white text-center" style={{ background: '#16A34A', borderRadius: 8 }}>
-                  Sign Up
-                </Link>
-              </>
-            )}
-          </nav>
-        </div>
+              ))}
+              <Link
+                href="/en/companies/join"
+                onClick={() => setMobileOpen(false)}
+                className="px-4 py-3 rounded-xl text-sm font-semibold text-green-700 bg-green-50 hover:bg-green-100 transition-colors"
+                style={{ minHeight: 48, display: 'flex', alignItems: 'center' }}
+              >
+                ✦ Become a Partner
+              </Link>
+              <div style={{ height: 1, background: '#F1F5F9', margin: '6px 0' }} />
+              {sessionUser ? (
+                <>
+                  <Link
+                    href={getDashboardLink()}
+                    onClick={() => setMobileOpen(false)}
+                    className="px-4 py-3 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                    style={{ minHeight: 48, display: 'flex', alignItems: 'center', gap: 8 }}
+                  >
+                    <LayoutDashboard size={16} /> {getDashboardLabel()}
+                  </Link>
+                  <Link
+                    href="/en/dashboard/profile"
+                    onClick={() => setMobileOpen(false)}
+                    className="px-4 py-3 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                    style={{ minHeight: 48, display: 'flex', alignItems: 'center', gap: 8 }}
+                  >
+                    <User size={16} /> My Profile
+                  </Link>
+                  <button
+                    onClick={() => { setMobileOpen(false); handleLogout() }}
+                    className="px-4 py-3 rounded-xl text-sm font-medium text-red-600 text-left hover:bg-red-50 transition-colors"
+                    style={{ border: 'none', background: 'none', width: '100%', cursor: 'pointer', minHeight: 48, display: 'flex', alignItems: 'center', gap: 8 }}
+                  >
+                    <LogOut size={16} /> Log Out
+                  </button>
+                </>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, paddingTop: 4 }}>
+                  <Link
+                    href="/en/login"
+                    onClick={() => setMobileOpen(false)}
+                    className="mt-btn-outline text-sm"
+                    style={{ justifyContent: 'center' }}
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/en/register"
+                    onClick={() => setMobileOpen(false)}
+                    className="mt-btn-primary text-sm"
+                    style={{ justifyContent: 'center' }}
+                  >
+                    Sign Up
+                  </Link>
+                </div>
+              )}
+            </nav>
+          </div>
+        </>
       )}
     </header>
   )

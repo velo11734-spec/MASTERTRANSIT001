@@ -164,12 +164,15 @@ export default function HomePage() {
   }
 
   return (
-    <div style={{ background: '#F8FAFC', minHeight: '100vh' }}>
+    <div className="page-enter" style={{ background: '#F8FAFC', minHeight: '100vh' }}>
+
 
       {/* ── HERO SECTION ──────────────────────────────────────────────────── */}
-      <section style={{ background: '#FFFFFF', padding: '32px 24px 0', borderBottom: '1px solid #E2E8F0' }}>
-        <div style={{ maxWidth: 800, margin: '0 auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'center' }}>
+      <section style={{ background: '#FFFFFF', padding: 'clamp(20px,4vw,32px) clamp(16px,4vw,24px) 0', borderBottom: '1px solid #E2E8F0' }}>
+        <div style={{ maxWidth: 900, margin: '0 auto' }}>
+          {/* Hero: 2-col on tablet+, stacked on mobile */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(300px,100%), 1fr))', gap: 'clamp(16px,3vw,28px)', alignItems: 'center' }}>
+
             {/* Left: Copy */}
             <div>
               <h1 style={{ fontSize: 42, fontWeight: 800, lineHeight: 1.1, color: '#0F172A', fontFamily: 'Outfit, sans-serif', marginBottom: 8, minHeight: 92 }}>
@@ -211,10 +214,11 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* ── SEARCH FORM ─────────────────────────────────────────────── */}
-          <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 16, padding: 20, marginTop: 16, boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
-            <form onSubmit={handleSearch}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr auto', gap: 12, alignItems: 'end' }}>
+              {/* Search form: responsive auto-grid */}
+              <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 16, padding: 'clamp(14px,2vw,20px)', marginTop: 16, boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
+                <form onSubmit={handleSearch}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, alignItems: 'end' }}>
+
                 {/* From */}
                 <div ref={fromRef} style={{ position: 'relative' }}>
                   <label className="mt-label">From</label>
@@ -315,21 +319,21 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                {/* Submit */}
-                <button type="submit" className="mt-btn-primary" style={{ height: 42, borderRadius: 8, paddingLeft: 20, paddingRight: 20, whiteSpace: 'nowrap' }}>
-                  <Search size={15} />
-                  Search Trips
-                </button>
-              </div>
-            </form>
-          </div>
+                  {/* Submit */}
+                  <button type="submit" className="mt-btn-primary" style={{ gridColumn: '1 / -1', borderRadius: 8, whiteSpace: 'nowrap' }}>
+                    <Search size={15} />
+                    Search Trips
+                  </button>
+                </div>
+              </form>
+            </div>
 
-          {/* Mobile search form (stacked) */}
           <style>{`
-            @media (max-width: 640px) {
-              .hero-grid { grid-template-columns: 1fr !important; }
-              .search-grid { grid-template-columns: 1fr !important; }
-              h1 { font-size: 32px !important; min-height: 72px !important; }
+            @media (min-width: 480px) {
+              .search-grid-inner { grid-template-columns: 1fr 1fr !important; }
+            }
+            @media (min-width: 900px) {
+              .search-grid-inner { grid-template-columns: 1fr 1fr 1fr 1fr auto !important; }
             }
             @keyframes blink-cursor { 50% { border-color: transparent } }
           `}</style>
@@ -354,7 +358,8 @@ export default function HomePage() {
               <a href="/en/partner" style={{ display: 'inline-block', marginTop: 14, fontSize: 13, fontWeight: 700, color: '#16A34A', textDecoration: 'none' }}>Become a transport partner →</a>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+            <div className="mt-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(200px,100%), 1fr))' }}>
+              {/* Responsive route grid: 4-col desktop → 2-col tablet → 1-col mobile */}
               {popularRoutes.map((route) => {
                 const minPrice = route.price_range_min
                 const priceLabel = minPrice ? `From ₦${minPrice.toLocaleString()}` : 'Price TBD'
@@ -398,7 +403,9 @@ export default function HomePage() {
       <section style={{ padding: '0 24px 28px' }}>
         <div style={{ maxWidth: 800, margin: '0 auto' }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, color: '#0F172A', marginBottom: 20 }}>How It Works</h2>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 0 }}>
+          {/* How It Works — wraps on mobile, arrows hide on xs */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 0, flexWrap: 'wrap', justifyContent: 'center' }}>
+
             {howSteps.map((step, i) => (
               <div key={step.label} style={{ display: 'flex', alignItems: 'flex-start', flex: 1 }}>
                 <div className="how-step">
@@ -409,7 +416,7 @@ export default function HomePage() {
                   <p style={{ fontSize: 11, color: '#94A3B8', textAlign: 'center', lineHeight: 1.4 }}>{step.desc}</p>
                 </div>
                 {i < howSteps.length - 1 && (
-                  <div style={{ flex: '0 0 24px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 14, color: '#CBD5E1' }}>
+                  <div className="hide-xs" style={{ flex: '0 0 24px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 14, color: '#CBD5E1' }}>
                     <ArrowRight size={16} />
                   </div>
                 )}
@@ -422,15 +429,17 @@ export default function HomePage() {
       {/* ── BUSINESS PARTNER CTA ─────────────────────────────────────────── */}
       <section style={{ padding: '0 24px 32px' }} className="fade-in">
         <div style={{
-          maxWidth: 800,
+          maxWidth: 900,
           margin: '0 auto',
           background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
           borderRadius: 16,
-          padding: '32px 40px',
+          padding: 'clamp(24px,4vw,40px)',
           color: '#FFFFFF',
           display: 'flex',
+          flexWrap: 'wrap',
           justifyContent: 'space-between',
           alignItems: 'center',
+          gap: 20,
           boxShadow: '0 10px 30px -10px rgba(15, 23, 42, 0.3)'
         }}>
           <div>
@@ -462,7 +471,10 @@ export default function HomePage() {
 
       {/* ── STATS BAR ────────────────────────────────────────────────────── */}
       <section style={{ background: '#1E293B', padding: '20px 24px' }}>
-        <div style={{ maxWidth: 800, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+        <div style={{ maxWidth: 900, margin: '0 auto' }}>
+          {/* Stats: auto-fill grid — 4 cols desktop, 2 tablet, 2 mobile */}
+          <div className="mt-stats-row stagger-children">
+
           {[
             { value: platformStats ? platformStats.users.toLocaleString() : '…', label: 'Registered Passengers' },
             { value: platformStats ? platformStats.companies.toLocaleString() : '…', label: 'Verified Operators' },
@@ -479,6 +491,7 @@ export default function HomePage() {
               </div>
             </div>
           ))}
+          </div>
         </div>
         <p style={{ textAlign: 'center', color: '#475569', fontSize: 11, marginTop: 12 }}>
           RoutePro is a newly launched platform — building with transparency, growing with you.
