@@ -1,0 +1,247 @@
+﻿CREATE TABLE profiles (
+CREATE TABLE companies (
+CREATE TABLE company_verifications (
+CREATE TABLE vehicle_batches (
+CREATE TABLE vehicles (
+CREATE TABLE terminals (
+CREATE TABLE drivers (
+CREATE TABLE routes (
+CREATE TABLE trips (
+CREATE TABLE seats (
+CREATE TABLE bookings (
+CREATE TABLE booking_passengers (
+CREATE TABLE payments (
+CREATE TABLE wallets (
+CREATE TABLE payouts (
+CREATE TABLE refunds (
+CREATE TABLE reviews (
+CREATE TABLE disputes (
+CREATE TABLE notifications (
+CREATE TABLE platform_settings (
+CREATE TABLE audit_logs (
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE companies ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vehicles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE routes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE trips ENABLE ROW LEVEL SECURITY;
+ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE platform_settings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public profiles are viewable by everyone" ON profiles FOR SELECT USING (true);
+CREATE POLICY "Users can update their own profiles" ON profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Companies viewable by everyone if approved" ON companies FOR SELECT USING (status = 'APPROVED' OR auth.uid() = owner_id);
+CREATE POLICY "Owners can update their company" ON companies FOR UPDATE USING (auth.uid() = owner_id);
+CREATE POLICY "Trips viewable by everyone" ON trips FOR SELECT USING (true);
+CREATE POLICY "Bookings viewable by the user who booked" ON bookings FOR SELECT USING (auth.uid() = user_id);
+CREATE TABLE companies (
+CREATE TABLE fleets (
+CREATE TABLE vehicles (
+CREATE TABLE routes (
+CREATE TABLE terminals (
+ALTER TABLE companies ENABLE ROW LEVEL SECURITY;
+ALTER TABLE fleets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vehicles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE routes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE terminals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public Access for Vehicle Photos" ON storage.objects FOR SELECT USING (bucket_id = 'vehicle_photos');
+CREATE POLICY "Public Access for User Avatars" ON storage.objects FOR SELECT USING (bucket_id = 'user_avatars');
+CREATE POLICY "Companies can read their own CACs" ON storage.objects FOR SELECT USING (bucket_id = 'company_cac' AND auth.uid() = owner);
+CREATE POLICY "Companies can read their own Insurance" ON storage.objects FOR SELECT USING (bucket_id = 'company_insurance' AND auth.uid() = owner);
+CREATE POLICY "Companies can read their own IDs" ON storage.objects FOR SELECT USING (bucket_id = 'company_ids' AND auth.uid() = owner);
+CREATE POLICY "Users can upload CAC" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'company_cac' AND auth.uid() = owner);
+CREATE POLICY "Users can upload Insurance" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'company_insurance' AND auth.uid() = owner);
+CREATE POLICY "Users can upload IDs" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'company_ids' AND auth.uid() = owner);
+CREATE POLICY "Users can upload vehicle photos" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'vehicle_photos' AND auth.uid() = owner);
+CREATE POLICY "Users can upload avatars" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'user_avatars' AND auth.uid() = owner);
+create table if not exists terminals (
+alter table terminals enable row level security;
+create policy "admin_all_terminals" on terminals
+create table if not exists routes (
+alter table routes enable row level security;
+create policy "admin_all_routes" on routes
+create policy "authenticated_read_routes" on routes
+create table if not exists disputes (
+alter table disputes enable row level security;
+create policy "admin_all_disputes" on disputes
+create policy "authenticated_insert_disputes" on disputes
+create policy "complainant_read_own_dispute" on disputes
+create table if not exists audit_logs (
+alter table audit_logs enable row level security;
+create policy "admin_read_audit_logs" on audit_logs
+create policy "admin_insert_audit_logs" on audit_logs
+create table if not exists partner_applications (
+alter table partner_applications enable row level security;
+create policy "admin_all_partner_applications" on partner_applications
+create policy "public_insert_partner_applications" on partner_applications
+create table if not exists platform_settings (
+alter table platform_settings enable row level security;
+create policy "admin_all_platform_settings" on platform_settings
+create policy "public_read_platform_settings" on platform_settings
+create table if not exists notifications_log (
+alter table notifications_log enable row level security;
+create policy "admin_all_notifications_log" on notifications_log
+create table if not exists fraud_flags (
+alter table fraud_flags enable row level security;
+create policy "admin_all_fraud_flags" on fraud_flags
+create table if not exists help_categories (
+alter table help_categories enable row level security;
+create policy "admin_all_help_categories" on help_categories
+create policy "public_read_help_categories" on help_categories
+create table if not exists help_articles (
+alter table help_articles enable row level security;
+create policy "admin_all_help_articles" on help_articles
+create policy "public_read_published_help_articles" on help_articles
+create table if not exists admin_notifications (
+alter table admin_notifications enable row level security;
+create policy "admin_all_admin_notifications" on admin_notifications
+create policy "authenticated_insert_admin_notifications" on admin_notifications
+-- Use create table if not exists and alter table if not exists for idempotent migrations
+create table if not exists company_wallets (
+create table if not exists wallet_transactions (
+create table if not exists passenger_wallets (
+create table if not exists passenger_wallet_transactions (
+create table if not exists platform_treasury (
+create table if not exists payout_requests (
+create table if not exists payouts (
+create table if not exists refund_requests (
+create table if not exists rental_deposits (
+create table if not exists vehicle_listing_payments (
+create table if not exists subscription_plans (
+create table if not exists company_subscriptions (
+create table if not exists ad_slots (
+create policy admin_full_access on company_wallets using (auth.role() = 'super_admin');
+create policy admin_full_access on wallet_transactions using (auth.role() = 'super_admin');
+create policy admin_full_access on passenger_wallets using (auth.role() = 'super_admin');
+create policy admin_full_access on passenger_wallet_transactions using (auth.role() = 'super_admin');
+create policy admin_full_access on platform_treasury using (auth.role() = 'super_admin');
+create policy admin_full_access on payout_requests using (auth.role() = 'super_admin');
+create policy admin_full_access on payouts using (auth.role() = 'super_admin');
+create policy admin_full_access on refund_requests using (auth.role() = 'super_admin');
+create policy admin_full_access on rental_deposits using (auth.role() = 'super_admin');
+create policy admin_full_access on vehicle_listing_payments using (auth.role() = 'super_admin');
+create policy admin_full_access on subscription_plans using (auth.role() = 'super_admin');
+create policy admin_full_access on company_subscriptions using (auth.role() = 'super_admin');
+create policy admin_full_access on ad_slots using (auth.role() = 'super_admin');
+create policy company_wallet_read on company_wallets using (company_id = auth.uid());
+create policy company_wallet_tx_read on wallet_transactions using (wallet_id in (select id from company_wallets where company_id = auth.uid()));
+create policy passenger_wallet_read on passenger_wallets using (user_id = auth.uid());
+create policy passenger_wallet_tx_read on passenger_wallet_transactions using (wallet_id in (select id from passenger_wallets where user_id = auth.uid()));
+create table if not exists company_team_members (
+alter table company_team_members enable row level security;
+create policy admin_team_members_all on company_team_members
+create policy company_owner_team_members on company_team_members
+create policy team_member_self on company_team_members
+create table if not exists vehicle_leads (
+alter table vehicle_leads enable row level security;
+create policy company_owner_leads on vehicle_leads
+create table if not exists fleet_vehicles (
+alter table fleet_vehicles enable row level security;
+create policy company_owner_fleet on fleet_vehicles
+create table if not exists company_drivers (
+alter table company_drivers enable row level security;
+create policy company_owner_drivers on company_drivers
+create policy admin_fleet on fleet_vehicles
+create policy admin_leads on vehicle_leads
+create policy admin_drivers on company_drivers
+CREATE TABLE IF NOT EXISTS departments (
+CREATE TABLE IF NOT EXISTS company_roles (
+CREATE TABLE IF NOT EXISTS company_staff (
+CREATE TABLE IF NOT EXISTS staff_invitations (
+CREATE TABLE IF NOT EXISTS jobs (
+CREATE TABLE IF NOT EXISTS job_applications (
+CREATE TABLE IF NOT EXISTS interviews (
+ALTER TABLE departments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE company_roles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE company_staff ENABLE ROW LEVEL SECURITY;
+ALTER TABLE staff_invitations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE jobs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE job_applications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE interviews ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public read for jobs" ON jobs FOR SELECT USING (status = 'published');
+CREATE POLICY "Companies can manage jobs" ON jobs FOR ALL USING (
+CREATE POLICY "Public read for departments" ON departments FOR SELECT USING (true);
+CREATE POLICY "Companies can manage departments" ON departments FOR ALL USING (
+CREATE POLICY "Public read for company_roles" ON company_roles FOR SELECT USING (true);
+CREATE POLICY "Companies can manage roles" ON company_roles FOR ALL USING (
+CREATE POLICY "Users can read/manage their own applications" ON job_applications FOR ALL USING (
+CREATE POLICY "Companies can manage applications for their jobs" ON job_applications FOR ALL USING (
+CREATE POLICY "Staff can view status" ON company_staff FOR SELECT USING (true);
+CREATE POLICY "Owners can manage staff" ON company_staff FOR ALL USING (
+CREATE POLICY "Invitations viewable by company" ON staff_invitations FOR ALL USING (
+CREATE POLICY "Interviews viewable by company or applicant" ON interviews FOR ALL USING (
+CREATE TABLE IF NOT EXISTS fleet_vehicles (
+CREATE TABLE IF NOT EXISTS company_team_members (
+CREATE TABLE IF NOT EXISTS company_wallets (
+CREATE TABLE IF NOT EXISTS vehicle_listings (
+CREATE TABLE IF NOT EXISTS vehicle_leads (
+CREATE TABLE IF NOT EXISTS rental_listings (
+ALTER TABLE fleet_vehicles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE company_team_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE company_wallets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vehicle_listings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vehicle_leads ENABLE ROW LEVEL SECURITY;
+ALTER TABLE rental_listings ENABLE ROW LEVEL SECURITY;
+CREATE TABLE IF NOT EXISTS passenger_wallets (
+CREATE TABLE IF NOT EXISTS passenger_wallet_transactions (
+CREATE TABLE IF NOT EXISTS passenger_withdrawal_requests (
+CREATE TABLE IF NOT EXISTS platform_settings (
+ALTER TABLE passenger_wallets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE passenger_wallet_transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE passenger_withdrawal_requests ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "wallet_owner_select"
+CREATE POLICY "wallet_owner_update"
+CREATE POLICY "wallet_owner_insert"
+CREATE POLICY "pwt_owner_select"
+CREATE POLICY "pwr_owner_select"
+CREATE POLICY "pwr_owner_insert"
+CREATE TABLE IF NOT EXISTS partner_applications (
+ALTER TABLE partner_applications ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "admin_all_partner_applications" ON partner_applications FOR ALL
+CREATE POLICY "public_insert_partner_applications" ON partner_applications
+CREATE TABLE IF NOT EXISTS notifications_log (
+ALTER TABLE notifications_log ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "admin_all_notifications_log" ON notifications_log FOR ALL
+CREATE TABLE IF NOT EXISTS fraud_flags (
+ALTER TABLE fraud_flags ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "admin_all_fraud_flags" ON fraud_flags FOR ALL
+CREATE TABLE IF NOT EXISTS help_categories (
+ALTER TABLE help_categories ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "public_read_help_categories" ON help_categories
+CREATE POLICY "admin_all_help_categories" ON help_categories FOR ALL
+CREATE TABLE IF NOT EXISTS help_articles (
+ALTER TABLE help_articles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "public_read_published_help_articles" ON help_articles
+CREATE POLICY "admin_all_help_articles" ON help_articles FOR ALL
+CREATE TABLE IF NOT EXISTS wallet_transactions (
+ALTER TABLE wallet_transactions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "company_wallet_tx_read" ON wallet_transactions FOR SELECT
+CREATE TABLE IF NOT EXISTS platform_treasury (
+ALTER TABLE platform_treasury ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "admin_read_treasury" ON platform_treasury FOR SELECT
+CREATE TABLE IF NOT EXISTS payout_requests (
+ALTER TABLE payout_requests ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "company_payout_request_read" ON payout_requests FOR SELECT
+CREATE POLICY "company_payout_request_insert" ON payout_requests FOR INSERT
+CREATE TABLE IF NOT EXISTS refund_requests (
+ALTER TABLE refund_requests ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "user_refund_request_read" ON refund_requests FOR SELECT
+CREATE POLICY "user_refund_request_insert" ON refund_requests FOR INSERT
+CREATE TABLE IF NOT EXISTS subscription_plans (
+ALTER TABLE subscription_plans ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "public_read_subscription_plans" ON subscription_plans
+CREATE TABLE IF NOT EXISTS company_subscriptions (
+ALTER TABLE company_subscriptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE company_wallets ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "company_wallet_owner_read" ON company_wallets FOR SELECT
+CREATE POLICY "admin_read_passenger_wallets" ON passenger_wallets FOR SELECT
+CREATE POLICY "admin_manage_withdrawals" ON passenger_withdrawal_requests FOR UPDATE
+CREATE POLICY "profiles_self_insert" ON profiles
+CREATE POLICY "bookings_user_insert" ON bookings
+CREATE POLICY "bookings_user_update" ON bookings
+CREATE TABLE public.cart_reservations (
+ALTER TABLE public.cart_reservations ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view their own reservations"
+CREATE POLICY "Users can insert their own reservations"
+CREATE POLICY "Users can delete their own reservations"
+CREATE POLICY "Delegators can view their staff"
+CREATE POLICY "Delegators can update their staff"

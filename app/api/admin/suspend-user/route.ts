@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function POST(req: Request) {
   try {
@@ -11,16 +13,7 @@ export async function POST(req: Request) {
     }
 
     const cookieStore = await cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() { return cookieStore.getAll() },
-          setAll() {}
-        }
-      }
-    )
+    const supabase = await createClient()
 
     // Verify admin
     const { data: { session } } = await supabase.auth.getSession()
@@ -31,7 +24,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const { error: updateError } = await supabase
+    const adminSupabase = createAdminClient()
+    const { error: updateError } = await adminSupabase
       .from('profiles')
       .update({ 
         is_suspended: suspend,
@@ -43,7 +37,7 @@ export async function POST(req: Request) {
     if (updateError) throw updateError
 
     // Log to audit
-    await supabase.from('audit_logs').insert({
+    await adminSupabase.from('audit_logs').insert({
       actor_id: session.user.id,
       actor_email: session.user.email,
       action: suspend ? 'suspend_user' : 'reactivate_user',

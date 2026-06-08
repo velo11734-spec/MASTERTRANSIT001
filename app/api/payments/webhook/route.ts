@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { createAdminClient } from '@/lib/supabase/admin'
 import crypto from 'crypto'
 
 // Webhook for Paystack and Flutterwave
@@ -21,20 +22,10 @@ export async function POST(req: Request) {
       const reference = payload.data.reference
       const amount = payload.data.amount / 100 // Convert from kobo to NGN
       
-      const cookieStore = await cookies()
-      const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, // Use service role for webhooks normally
-        {
-          cookies: {
-            getAll() { return cookieStore.getAll() },
-            setAll() {}
-          }
-        }
-      )
+      const adminSupabase = createAdminClient()
 
       // Update payment status
-      const { data: payment, error: paymentError } = await supabase
+      const { data: payment, error: paymentError } = await adminSupabase
         .from('payments')
         .update({ status: 'successful' })
         .eq('reference', reference)
@@ -48,7 +39,7 @@ export async function POST(req: Request) {
 
       // If it's a booking payment, update booking status
       if (payment.booking_id) {
-        await supabase
+        await adminSupabase
           .from('bookings')
           .update({ status: 'confirmed' })
           .eq('id', payment.booking_id)
